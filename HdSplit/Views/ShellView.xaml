@@ -1,0 +1,96 @@
+﻿<Window x:Class="HdSplit.Views.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:cal="http://www.caliburnproject.org"
+        xmlns:local="clr-namespace:HdSplit.Views"
+        xmlns:viewModels="clr-namespace:HdSplit.ViewModels"
+
+        mc:Ignorable="d" FontSize="18"
+        Title="ShellView" Height="800" Width="1200" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <Style TargetType="DataGridCell">
+            <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <viewModels:LineConverter x:Key="LineConverter" />
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="20"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="6*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="20"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="20"/>
+            </Grid.ColumnDefinitions>
+            <Label FontSize="30" Grid.Column="1" 
+                   HorizontalContentAlignment="Center" 
+                   VerticalContentAlignment="Center">HD Number:</Label>
+            <TextBlock x:Name="HdNumber"
+                   
+                   FontSize="30" Grid.Column="2" 
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"></TextBlock>
+        </Grid>
+
+        <DataGrid x:Name="MyData" Grid.Row="2" Grid.Column="1" 
+                  AlternatingRowBackground="LightBlue" AlternationCount="2"
+                  CanUserAddRows="False" 
+                  HorizontalGridLinesBrush="#FFC7C7C7"
+                  AutoGenerateColumns="False"
+                  ItemsSource="{Binding Path=CountedHd.ListOfIpgs, Mode=TwoWay}">
+            <DataGrid.Effect>
+                <DropShadowEffect/>
+            </DataGrid.Effect>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Article" Binding="{Binding Item}" Width="*"/>
+                <DataGridTextColumn Header="Line" Binding="{Binding Line, Converter={StaticResource LineConverter}}" Width="*"/>
+                <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="*"/>
+                <DataGridTextColumn Header="Grade" Binding="{Binding Item}" Width="*"/>
+                <DataGridTextColumn Header="Upc Code" Binding="{Binding UpcCode}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <!--ItemsSource="{Binding Path=CountedHd.ListOfIpgs, Mode=TwoWay}-->
+
+        <!--<TextBlock Grid.Row="1" Grid.Column="1"
+                   Text="{Binding Path=FirstName}"/>-->
+        
+        <!--<ComboBox Name="ComboBox" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Path=Hd}"
+                  SelectedItem="{Binding Path=SelectedIpg, Mode=OneWayToSource }"
+                  DisplayMemberPath="Item"/>-->
+
+        <TextBlock x:Name="InformationText"
+                   Grid.Row="3" Grid.Column="1" MinWidth="100" Margin="15"
+                   VerticalAlignment="Center" HorizontalAlignment="Center"
+                   FontSize="35" />
+        <DockPanel Grid.Row="4" Grid.Column="1" HorizontalAlignment="Stretch" Width="Auto">
+            <TextBox DockPanel.Dock="Left" VerticalAlignment="Stretch" MinWidth="800" Margin="15" Name="ScannedBarcode"
+                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                     FontSize="35" 
+                     cal:Message.Attach="[Event KeyDown] = [Action ScanItemAsync($eventArgs)]"/>
+            <Button DockPanel.Dock="Right" VerticalAlignment="Stretch" Margin="15"
+                    cal:Message.Attach="[Event Click] = [Action ScanItemAsync($eventArgs)]">Scan</Button>
+        </DockPanel>
+        
+
+        <Button x:Name="Confirm" Grid.Row="5" Grid.Column="1" >Confirm</Button>
+    </Grid>
+</Window>
