@@ -15,9 +15,9 @@ namespace HdSplit.Models {
         {
             if (original)
             {
-                ListOfIpgs.Add (new IpgModel () { Item = "7613392345612", Line = Lines.LINE_10, Quantity = 15 });
-                ListOfIpgs.Add (new IpgModel () { Item = "7613826458568", Line = Lines.LINE_15, Quantity = 6 });
-                ListOfIpgs.Add (new IpgModel () { Item = "7613398562231", Line = Lines.LINE_30, Quantity = 9 });
+                ListOfIpgs.Add (new IpgModel () { Item = "7613392345612", Line = Lines.LINE_10, Quantity = 15 , Grade = "T30"});
+                ListOfIpgs.Add (new IpgModel () { Item = "7613826458568", Line = Lines.LINE_15, Quantity = 6, Grade = "T30" });
+                ListOfIpgs.Add (new IpgModel () { Item = "7613398562231", Line = Lines.LINE_30, Quantity = 9, Grade = "T30" });
             }
             
         }
