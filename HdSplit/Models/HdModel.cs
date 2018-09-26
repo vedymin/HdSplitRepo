@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace HdSplit.Models {
     public class HdModel {
+
         public BindableCollection<IpgModel> ListOfIpgs { get; set; } = new BindableCollection<IpgModel> ();
         public string HdNumber { get; set; }
 

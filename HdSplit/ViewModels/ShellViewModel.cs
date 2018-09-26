@@ -11,18 +11,19 @@ using OperationCanceledException = System.OperationCanceledException;
 namespace HdSplit.ViewModels {
     internal class ShellViewModel : Screen
     {
-        /// <summary>
-        /// 
-        /// </summary>
+        // For some reason needed for infotmation label.
         private Thread NotifyAboutIncorrectHdAsyncThread = null;
+
+
         private HdModel _originalHd = new HdModel (false);
         private HdModel _countedHd = new HdModel (false);
         private string _hdNumber;
         private States _scanningState;
-        private IpgModel _selectedIpg;
         private string _scannedBarcode;
         private string _informationText;
         private string _previousInformationText;
+
+        public bool ErrorLabelShowRunning { get; set; }
 
         public ShellViewModel()
         {
@@ -39,7 +40,7 @@ namespace HdSplit.ViewModels {
         {
             get { return _hdNumber; }
             set {
-                _hdNumber = OriginalHd.HdNumber;
+                _hdNumber = value;
                 NotifyOfPropertyChange (() => OriginalHd.HdNumber);
             }
         }
@@ -71,16 +72,6 @@ namespace HdSplit.ViewModels {
             set { _scanningState = value; }
         }
 
-        public IpgModel SelectedIpg
-        {
-            get { return _selectedIpg; }
-            set
-            {
-                _selectedIpg = value;
-                NotifyOfPropertyChange(() => SelectedIpg);
-            }
-        }
-
         public string ScannedBarcode
         {
             get { return _scannedBarcode; }
@@ -107,35 +98,65 @@ namespace HdSplit.ViewModels {
             }
         }
 
-        public bool ErrorLabelShowRunning { get; set; }
 
+        /// <summary>
+        /// Reaction to scan button click or to press enter inside scanning box.
+        /// </summary>
+        /// <param name="keyArgs"></param>
+        /// <returns></returns>
         public async Task ScanItemAsync(KeyEventArgs keyArgs) 
         {
+            // keyArgs will be null if user clicked button scan.
+            // IF also checking if there is enter pressed.
             if (keyArgs == null || keyArgs.Key == Key.Enter) {
-                //Download HD content and load it into OriginalHD
-                //Copy OriginalHD to CountedHD:
+
+                // IF checking about the state. Always start from firstScanOfHd. State needs to be set also in Reset().
                 if (ScanningState == States.firstScanOfHd)
                 {
+                    // Validation of hd, and also updating info label. Needs to be refactored.
                     if (!CountedHd.CheckIfHdNumberIsCorrect (ScannedBarcode)) {
                         if (!ErrorLabelShowRunning) 
                         {
                             PreviousInformationText = InformationText;
                         }
                         NotifyAboutIncorrectHdAsync ();
+
                         return;
                     }
-                    ScanHd();
-                    //await ReflexConnection.downloadUpcForItemsAsync (CountedHd);
-                    Task.Factory.StartNew (DownloadUpc);
-                    Console.WriteLine("Jestem już poza DownloadUPC");
-                    //CountedHd.ListOfIpgs.Refresh ();
 
+                    // Hd is validated, so here we are going to download all information asynchronized.
+                    await Task.Factory.StartNew (() =>
+                    {
+                        // Save scanned barcoded so we can use it later.
+                        OriginalHd.HdNumber = ScannedBarcode;
+
+                        // IF is checking if HD is unknown. IF yes then ScanHd return false, and Information label is updated.
+                        if (!ScanHd ()) {
+                            if (!ErrorLabelShowRunning) {
+                                PreviousInformationText = InformationText;
+                            }
+
+                            NotifyAboutHdUnknownAsync ();
+                            ScannedBarcode = string.Empty;
+                            return;
+                        }
+                        
+                        // HdNumber is binded to label on top of the program where you can see which HD user scanned.
+                        HdNumber = OriginalHd.HdNumber;
+
+                        // Clearing scanning box
+                        ScannedBarcode = string.Empty;
+
+                        // As it says...
+                        DownloadUpc ();
+                    });
+                    Console.WriteLine("Jestem już poza DownloadUPC");
                 }
                 else if (ScanningState == States.itemScan)
                 {
-
-
+                    // And rest of logic here....
                 }
+
                 //Tutaj jest kod który usuwa IPG z hd jeśli ilość dotarła do 0.                    
                 //SelectedIpg.Quantity--;
                 //if (SelectedIpg.Quantity == 0) {
@@ -146,6 +167,9 @@ namespace HdSplit.ViewModels {
             }
         }
 
+
+        // Those two are very similar. Maybe you can join them, but better would be to
+        // rewrite behaviour of information label.
         private async Task NotifyAboutIncorrectHdAsync()
         {
             ErrorLabelShowRunning = true;
@@ -160,14 +184,39 @@ namespace HdSplit.ViewModels {
             {
 
                 NotifyAboutIncorrectHdAsyncThread = Thread.CurrentThread;
-                System.Threading.Thread.Sleep(2000);
+                System.Threading.Thread.Sleep(4000);
             });
+
             if (InformationText == "This is not correct HD") {
                 InformationText = PreviousInformationText;
                 ErrorLabelShowRunning = false;
             }
         }
 
+        private async Task NotifyAboutHdUnknownAsync() {
+            string _message = "Hd Unknown";
+            ErrorLabelShowRunning = true;
+            if (NotifyAboutIncorrectHdAsyncThread != null) {
+                NotifyAboutIncorrectHdAsyncThread.Abort ();
+                NotifyAboutIncorrectHdAsyncThread = null;
+            }
+
+            InformationText = _message;
+            await Task.Run (() => {
+
+                NotifyAboutIncorrectHdAsyncThread = Thread.CurrentThread;
+                System.Threading.Thread.Sleep (4000);
+            });
+
+            if (InformationText == _message) {
+                InformationText = PreviousInformationText;
+                ErrorLabelShowRunning = false;
+            }
+        }
+        // End of information label functions.
+
+
+        // For now not used anywhere. Can be used maybe for changing ScanHD function (instead of foreach about all property one by one).
         public void CopyOriginalHdToCountedHd()
         {
             foreach (PropertyInfo property in typeof (HdModel).GetProperties ()) {
@@ -175,32 +224,67 @@ namespace HdSplit.ViewModels {
             }
         }
 
-        public void ScanHd()
+        /// <summary>
+        /// Download HD information
+        /// </summary>
+        /// <returns></returns>
+        public bool ScanHd()
         {
+            // Clearing info about already working on HD's. Later should after Confirm function return all is done.
+            // Can be moved also to Reset button. You need oto reset anyway when you are scanning the HD. 
+            CountedHd.ListOfIpgs.Clear ();
+            OriginalHd.ListOfIpgs.Clear ();
+
+            // Creating instance of reflex connection so we can work with its HD instance.
+            // This is needed for passing back HD info from reflex connection to ShellViewModel instance of OriginalHD and COunted HD.
+            // TRY TO SET THIS AS PROPERTY OF SHELL VIEW MODELS
             var reflexConnection = new ReflexConnectionModel ();
-            reflexConnection.DownloadHdFromReflex (ScannedBarcode);
-            CountedHd.ListOfIpgs.Clear();
-            OriginalHd.ListOfIpgs.Clear();
-            OriginalHd.HdNumber = reflexConnection.OriginalHdModel.HdNumber;
-            foreach (var Ipg in reflexConnection.OriginalHdModel.ListOfIpgs)
+
+            // IF checks here if we have some data inside reflexConnection.Hd.
+            // If not then this function return HD unknown (false)
+            if (reflexConnection.DownloadHdFromReflex (OriginalHd.HdNumber))
             {
-                CountedHd.ListOfIpgs.Add(new IpgModel(){Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade});
-                OriginalHd.ListOfIpgs.Add (new IpgModel () { Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
+                // Tricky way to copy one hd to another. Needs to go thru properties manually.
+                // There is porobably better way with function CopyOriginalHdToCountedHd().
+                foreach (var Ipg in reflexConnection.OriginalHdModel.ListOfIpgs)
+                {
+                    // It is copied to original and counted at once. Question is it will change only counted or also original???
+                    CountedHd.ListOfIpgs.Add (new IpgModel () {Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
+                    OriginalHd.ListOfIpgs.Add (new IpgModel () { Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
+                }
+                // We still have some data so return true.
+                return true;
+            } 
+            else
+            {
+                // Hd is unknown
+                return false;
             }
-            //ReflexConnection.downloadUpcForItemsAsync (CountedHd);
-            //CountedHd.ListOfIpgs.Refresh ();
         }
 
-        public void DownloadUpc() {
-            ReflexConnection.OpenConnection();
 
-            foreach (var _ipg in CountedHd.ListOfIpgs) {
+        /// <summary>
+        /// Download UPC barcodes for items
+        /// </summary>
+        public void DownloadUpc()
+        {
+            // Creating instance of reflex connection so we can work with its HD instance.
+            // This is needed for passing back HD info from reflex connection to ShellViewModel instance of OriginalHD and COunted HD.
+            // TRY TO SET THIS AS PROPERTY OF SHELL VIEW MODELS
+            var reflexConnection = new ReflexConnectionModel ();
 
-                _ipg.UpcCode = ReflexConnection.DownloadUpcForItemsAsync (_ipg.Item);
-                CountedHd.ListOfIpgs.Refresh ();
+            // Index needed for reaching UpcCode in bindable collection in foreach loop
+            int i = 0;
+
+            //            This: v   is returning bindable collection of IPG's
+            foreach (var Ipg in reflexConnection.DownloadUpcForItemsAsync (CountedHd.ListOfIpgs))
+            {
+                CountedHd.ListOfIpgs[i].UpcCode = Ipg.UpcCode;
+                i++;
             }
 
-            ReflexConnection.CloseConnection();
+            // Unfortunately needed for updating DataGrid.
+            CountedHd.ListOfIpgs.Refresh ();
         }
     }
 }

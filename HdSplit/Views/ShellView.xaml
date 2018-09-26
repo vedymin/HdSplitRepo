@@ -37,15 +37,15 @@
         <Grid Grid.Row="1" Grid.Column="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="400"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="20"/>
             </Grid.ColumnDefinitions>
             <Label FontSize="30" Grid.Column="1" 
                    HorizontalContentAlignment="Center" 
                    VerticalContentAlignment="Center">HD Number:</Label>
             <TextBlock x:Name="HdNumber"
-                   
                    FontSize="30" Grid.Column="2" 
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"></TextBlock>
@@ -64,7 +64,7 @@
                 <DataGridTextColumn Header="Article" Binding="{Binding Item}" Width="*"/>
                 <DataGridTextColumn Header="Line" Binding="{Binding Line, Converter={StaticResource LineConverter}}" Width="*"/>
                 <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="*"/>
-                <DataGridTextColumn Header="Grade" Binding="{Binding Item}" Width="*"/>
+                <DataGridTextColumn Header="Grade" Binding="{Binding Grade}" Width="*"/>
                 <DataGridTextColumn Header="Upc Code" Binding="{Binding UpcCode}" Width="*"/>
             </DataGrid.Columns>
         </DataGrid>
@@ -75,22 +75,26 @@
         
         <!--<ComboBox Name="ComboBox" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Path=Hd}"
                   SelectedItem="{Binding Path=SelectedIpg, Mode=OneWayToSource }"
-                  DisplayMemberPath="Item"/>-->
+                  Dis playMemberPath="Item"/>-->
 
         <TextBlock x:Name="InformationText"
                    Grid.Row="3" Grid.Column="1" MinWidth="100" Margin="15"
                    VerticalAlignment="Center" HorizontalAlignment="Center"
                    FontSize="35" />
-        <DockPanel Grid.Row="4" Grid.Column="1" HorizontalAlignment="Stretch" Width="Auto">
-            <TextBox DockPanel.Dock="Left" VerticalAlignment="Stretch" MinWidth="800" Margin="15" Name="ScannedBarcode"
+        <Grid Grid.Row="4" Grid.Column="1" HorizontalAlignment="Stretch" Width="Auto">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" Margin="7,15,23,15" Name="ScannedBarcode"
                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                     FontSize="35" 
+                     FontSize="25" 
                      cal:Message.Attach="[Event KeyDown] = [Action ScanItemAsync($eventArgs)]"/>
-            <Button DockPanel.Dock="Right" VerticalAlignment="Stretch" Margin="15"
+            <Button Grid.Column="1" Margin="15" 
                     cal:Message.Attach="[Event Click] = [Action ScanItemAsync($eventArgs)]">Scan</Button>
-        </DockPanel>
+        </Grid>
         
 
-        <Button x:Name="Confirm" Grid.Row="5" Grid.Column="1" >Confirm</Button>
+        <Button x:Name="Confirm" Grid.Row="5" Grid.Column="1" IsEnabled="false">Confirm</Button>
     </Grid>
 </Window>
