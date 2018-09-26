@@ -12,7 +12,7 @@ namespace HdSplit.Models
 
         public HdModel OriginalHdModel { get; set; } = new HdModel(false);
 
-        public void downloadHdFromReflex(string _hd) {
+        public void DownloadHdFromReflex(string _hd) {
             
             Console.WriteLine ("Trying to connect to AS400 DB2 using Client Access .dll");
             try {
@@ -50,46 +50,53 @@ namespace HdSplit.Models
             
         }
 
-        public async Task downloadUpcForItemsAsync(HdModel _hd)
+        public void OpenConnection()
         {
-            await Task.Run(() =>
-            {
-                Console.WriteLine("Trying to connect to AS400 DB2 using Client Access .dll");
-                try
-                {
-                    conn.Open();
-                    if (conn != null)
-                    {
-                        Console.WriteLine("Successfully connected...");
-                        foreach (var Ipg in _hd.ListOfIpgs)
-                        {
-                            _queryString = $"SELECT VICIVL FROM GUEPRDDB.HLVLIDP WHERE VICART = '{Ipg.Item}'";
-                            iDB2Command comm = conn.CreateCommand();
-                            comm.CommandText = _queryString;
-                            iDB2DataReader reader = comm.ExecuteReader();
+            conn.Open ();
+        }
 
-                            while (reader.Read())
-                            {
-                                Ipg.UpcCode = reader.GetString(0).ToString().Trim();
-                                Console.WriteLine ("Upc added");
-                            }
-                            
-                            reader.Close();
-                            comm.Dispose();
-                        }
+        public void CloseConnection()
+        {
+            conn.Close ();
+        }
+
+        public string DownloadUpcForItemsAsync(string _item)
+        {
+            string result = "error";
+            Console.WriteLine ("Trying to connect to AS400 DB2 using Client Access .dll");
+            try
+            {
+                
+                if (conn != null)
+                {
+                    Console.WriteLine ("Successfully connected...");
+                    _queryString = $"SELECT VICIVL FROM GUEPRDDB.HLVLIDP WHERE VICART = '{_item}'";
+                    iDB2Command comm = conn.CreateCommand ();
+                    comm.CommandText = _queryString;
+                    iDB2DataReader reader = comm.ExecuteReader ();
+
+                    while (reader.Read())
+                    {
+                        result = reader.GetString(0).ToString().Trim();
                     }
 
+                    Console.WriteLine ("Upc added");
+
+
+                    reader.Close ();
+                    comm.Dispose ();
+
+
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error : " + ex);
-                    Console.WriteLine(ex.StackTrace);
-                }
-                finally
-                {
-                    conn.Close();
-                }
-            });
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error : " + ex);
+                Console.WriteLine(ex.StackTrace);
+                return null;
+            }
+            return result;
 
 
         }

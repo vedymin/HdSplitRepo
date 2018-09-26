@@ -11,6 +11,9 @@ using OperationCanceledException = System.OperationCanceledException;
 namespace HdSplit.ViewModels {
     internal class ShellViewModel : Screen
     {
+        /// <summary>
+        /// 
+        /// </summary>
         private Thread NotifyAboutIncorrectHdAsyncThread = null;
         private HdModel _originalHd = new HdModel (false);
         private HdModel _countedHd = new HdModel (false);
@@ -20,6 +23,17 @@ namespace HdSplit.ViewModels {
         private string _scannedBarcode;
         private string _informationText;
         private string _previousInformationText;
+
+        public ShellViewModel()
+        {
+            //var OriginalHd = new HdModel (true);
+            //var CountedHd = new HdModel(false);
+            //var ReflexConnection = new ReflexConnectionModel();
+            //CopyOriginalHdToCountedHd ();
+            InformationText = "Scan HD to start splitting";
+            ErrorLabelShowRunning = false;
+            
+        }
 
         public string HdNumber
         {
@@ -50,19 +64,6 @@ namespace HdSplit.ViewModels {
         }
 
         public ReflexConnectionModel ReflexConnection = new ReflexConnectionModel();
-
-        
-
-        public ShellViewModel()
-        {
-            //var OriginalHd = new HdModel (true);
-            //var CountedHd = new HdModel(false);
-            //var ReflexConnection = new ReflexConnectionModel();
-            //CopyOriginalHdToCountedHd ();
-            InformationText = "Scan HD to start splitting";
-            ErrorLabelShowRunning = false;
-            
-        }
 
         public States ScanningState
         {
@@ -124,8 +125,10 @@ namespace HdSplit.ViewModels {
                         return;
                     }
                     ScanHd();
-                    await ReflexConnection.downloadUpcForItemsAsync (CountedHd);
-                    CountedHd.ListOfIpgs.Refresh ();
+                    //await ReflexConnection.downloadUpcForItemsAsync (CountedHd);
+                    Task.Factory.StartNew (DownloadUpc);
+                    Console.WriteLine("Jestem już poza DownloadUPC");
+                    //CountedHd.ListOfIpgs.Refresh ();
 
                 }
                 else if (ScanningState == States.itemScan)
@@ -175,7 +178,7 @@ namespace HdSplit.ViewModels {
         public void ScanHd()
         {
             var reflexConnection = new ReflexConnectionModel ();
-            reflexConnection.downloadHdFromReflex (ScannedBarcode);
+            reflexConnection.DownloadHdFromReflex (ScannedBarcode);
             CountedHd.ListOfIpgs.Clear();
             OriginalHd.ListOfIpgs.Clear();
             OriginalHd.HdNumber = reflexConnection.OriginalHdModel.HdNumber;
@@ -188,15 +191,16 @@ namespace HdSplit.ViewModels {
             //CountedHd.ListOfIpgs.Refresh ();
         }
 
-        //public void DownloadUpc() {
-        //    foreach (var _ipg in CountedHd.ListOfIpgs)
-        //    {
-        //        Task<IpgModel> t = Task.Factory.StartNew(() => ReflexConnection.downloadUpcForItemsAsync(_ipg));
-        //        _ipg.Item = ReflexConnection.downloadUpcForItemsAsync (_ipg.Item);
-        //        CountedHd.ListOfIpgs.Refresh ();
-        //    }
+        public void DownloadUpc() {
+            ReflexConnection.OpenConnection();
 
+            foreach (var _ipg in CountedHd.ListOfIpgs) {
 
+                _ipg.UpcCode = ReflexConnection.DownloadUpcForItemsAsync (_ipg.Item);
+                CountedHd.ListOfIpgs.Refresh ();
+            }
+
+            ReflexConnection.CloseConnection();
         }
     }
 }
