@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Media;
 using Caliburn.Micro;
 using HdSplit.Models;
 using OperationCanceledException = System.OperationCanceledException;
@@ -23,6 +24,19 @@ namespace HdSplit.ViewModels {
         private string _informationText;
         private string _previousInformationText;
 
+        private Brush _background;
+        public Brush Background {
+            get {
+                return _background;
+            }
+
+            set {
+                _background = value;
+                NotifyOfPropertyChange (() => Background );
+            }
+        }
+
+
         public bool ErrorLabelShowRunning { get; set; }
 
         public ShellViewModel()
@@ -33,6 +47,7 @@ namespace HdSplit.ViewModels {
             //CopyOriginalHdToCountedHd ();
             InformationText = "Scan HD to start splitting";
             ErrorLabelShowRunning = false;
+            //Background = new SolidColorBrush(Colors.Green);
             
         }
 
@@ -119,7 +134,7 @@ namespace HdSplit.ViewModels {
                         {
                             PreviousInformationText = InformationText;
                         }
-                        Notify ("Incorrect HD");
+                        Notify ("Incorrect HD", Background = new SolidColorBrush (Colors.Red));
 
                         return;
                     }
@@ -134,7 +149,7 @@ namespace HdSplit.ViewModels {
                         if (!ScanHd ()) {
 
 
-                            Notify ("Hd Unknown");
+                            Notify ("Hd Unknown", Background = new SolidColorBrush (Colors.Red));
                             ScannedBarcode = string.Empty;
                             return;
                         }
@@ -160,7 +175,7 @@ namespace HdSplit.ViewModels {
                     try
                     {
                         foreach (var Ipg in CountedHd.ListOfIpgs) {
-                            if (Ipg.Item == ScannedBarcode) {
+                            if (Ipg.Item == ScannedBarcode || Ipg.UpcCode == ScannedBarcode) {
                                 ItemNotFound = false;
                                 Ipg.Quantity--;
                                 if (Ipg.Quantity == 0) {
@@ -177,7 +192,7 @@ namespace HdSplit.ViewModels {
                         }
 
                         if (ItemNotFound) {
-                            Notify ("This item do not belong to this HD.");
+                            Notify ("This item do not belong to this HD.", new SolidColorBrush (Colors.Red));
                             return;
                         }
                     }
@@ -238,7 +253,9 @@ namespace HdSplit.ViewModels {
             }
         }
 
-        private async Task Notify(string _message) {
+        private async Task Notify(string _message, Brush color) {
+            
+
             if (!ErrorLabelShowRunning) {
                 PreviousInformationText = InformationText;
             }
@@ -248,11 +265,12 @@ namespace HdSplit.ViewModels {
             if (NotifyAboutIncorrectHdAsyncThread != null) {
                 NotifyAboutIncorrectHdAsyncThread.Abort ();
                 NotifyAboutIncorrectHdAsyncThread = null;
+                Background = new SolidColorBrush (Colors.White);
             }
 
             InformationText = _message;
             await Task.Run (() => {
-
+                Background = color;
                 NotifyAboutIncorrectHdAsyncThread = Thread.CurrentThread;
                 System.Threading.Thread.Sleep (3000);
             });
@@ -260,6 +278,7 @@ namespace HdSplit.ViewModels {
             if (InformationText == _message) {
                 InformationText = PreviousInformationText;
                 ErrorLabelShowRunning = false;
+                Background = new SolidColorBrush (Colors.White);
             }
         }
         // End of information label functions.

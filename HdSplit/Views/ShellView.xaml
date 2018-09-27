@@ -6,9 +6,8 @@
         xmlns:cal="http://www.caliburnproject.org"
         xmlns:local="clr-namespace:HdSplit.Views"
         xmlns:viewModels="clr-namespace:HdSplit.ViewModels"
-
         mc:Ignorable="d" FontSize="18"
-        Title="ShellView" Height="800" Width="1200" WindowStartupLocation="CenterScreen">
+        Title="HD Split/Check" Height="800" Width="1200" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <Style TargetType="DataGridCell">
             <Setter Property="TextBlock.TextAlignment" Value="Center"/>
@@ -79,10 +78,18 @@
                   SelectedItem="{Binding Path=SelectedIpg, Mode=OneWayToSource }"
                   Dis playMemberPath="Item"/>-->
 
-        <TextBlock x:Name="InformationText"
-                   Grid.Row="3" Grid.Column="1" MinWidth="100" Margin="15"
+
+        <!-- Information text settings-->
+        <Border Grid.Row="3" Grid.Column="1" BorderThickness="0" Background="{Binding Background}">
+            <TextBlock x:Name="InformationText"
+                   MinWidth="100" Margin="15"
                    VerticalAlignment="Center" HorizontalAlignment="Center"
-                   FontSize="35" />
+                   FontSize="30" Background="{Binding Background}"
+                   />
+        </Border>
+
+
+        <!-- Scanning row with button "Scan"-->
         <Grid Grid.Row="4" Grid.Column="1" HorizontalAlignment="Stretch" Width="Auto">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="4*"/>
