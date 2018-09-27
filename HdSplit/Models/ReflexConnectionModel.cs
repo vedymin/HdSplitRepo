@@ -1,5 +1,6 @@
 ﻿using IBM.Data.DB2.iSeries;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Caliburn.Micro;
 using HdSplit.ViewModels;
@@ -10,8 +11,7 @@ namespace HdSplit.Models
     {
         // Consider throwing this into configuration file.
         iDB2Connection conn = new iDB2Connection ("DataSource=10.52.1.100; UserID=VASPROD; Password=VASPROD;");
-
-
+        
         public HdModel OriginalHdModel { get; set; } = new HdModel(false);
 
         /// <summary>
@@ -51,8 +51,8 @@ namespace HdSplit.Models
                             // Here we are adding new IPG to HD object.
                             OriginalHdModel.ListOfIpgs.Add (new IpgModel () 
                             {
-                                Item = reader.GetString (0),
-                                Grade = reader.GetString (1),
+                                Item = reader.GetString (0).ToString ().Trim (),
+                                Grade = reader.GetString (1).ToString ().Trim (),
                                 // Lines is an enum so we need parse string to enum here.
                                 Line = (Lines)Enum.Parse (typeof (Lines), reader.GetString (2)),
                                 Quantity = reader.GetInt32 (3),
@@ -90,11 +90,14 @@ namespace HdSplit.Models
         }
 
         /// <summary>
-        /// Returns downloaded bindableCollection of Ipg's with UPC codes matching items.
+        /// Returns downloaded Dictioanry with UPC codes matching items.
         /// </summary>
-        public BindableCollection<IpgModel> DownloadUpcForItemsAsync(BindableCollection<IpgModel> _ipgsCollection)
+        public Dictionary<string,string> DownloadUpcForItemsAsync(BindableCollection<IpgModel> _ipgsCollection)
         {
             Console.WriteLine ("Trying to connect to Reflex for downloading UPC codes...");
+
+            // Dictionary for holding Ean to Upc map.
+            Dictionary<string, string> Ean_Upc = new Dictionary<string, string>();
 
             // Preparing a formatted list of items.
             string _items = ConcatenateItemsIntoList (_ipgsCollection);
@@ -107,33 +110,26 @@ namespace HdSplit.Models
                     Console.WriteLine("Successfully connected to Reflex for downloading UPC codes");
 
                     // Below are DB2 functions needed for executing query
-                    string _queryString = $"SELECT VICIVL FROM GUEPRDDB.HLVLIDP WHERE VICART IN {_items} and VICTYI = 'EAN_1' Order by VICIVL ";
+                    string _queryString = $"SELECT VICART, VICIVL FROM GUEPRDDB.HLVLIDP WHERE VICART IN {_items} and VICTYI = 'EAN_1' Order by VICIVL ";
                     iDB2Command comm = conn.CreateCommand();
                     comm.CommandText = _queryString;
                     iDB2DataReader reader = comm.ExecuteReader();
 
-                    // countOfIpg is index needed for going through _ipgsCollection.
-                    int countOfIpg = 0;
-
                     // Reader in while goes through all rows of results from Reflex.
                     while (reader.Read())
                     {
-                        // Here we use index to assign row by row result from Reflex to UpcCode of IPG in _ipgsCollection
-                        // It is important tha items needs to be ordered both in object of hd and in the result list.
-                        // For that we are using "order by" in our sql.
-                        _ipgsCollection[countOfIpg].UpcCode = reader.GetString(0).ToString().Trim();
-                        countOfIpg++;
+                        // Adds new key-value to a Dictionary.
+                        Ean_Upc.Add(reader.GetString (0).ToString ().Trim (), reader.GetString (1).ToString ().Trim ());
                     }
 
-                    Console.WriteLine("Upc downloaded");
+                    Console.WriteLine("Dictionary EAN_UPC created");
                     
                     // Some cleaning needed.
                     reader.Close();
                     comm.Dispose();
 
-                    // We are returning whole collection straight to foreach loop so we can assign again to
-                    // our ViewModel object of HD. For that check ShellViewModel class.
-                    return _ipgsCollection;
+                    // Return Dictionary
+                    return Ean_Upc;
                 }
             }
             catch (Exception ex)
@@ -148,7 +144,7 @@ namespace HdSplit.Models
             }
 
             // This will never reach by needs to be here because of error "Not all is returning value".
-            return _ipgsCollection;
+            return Ean_Upc;
         }
 
         /// <summary>

@@ -273,14 +273,14 @@ namespace HdSplit.ViewModels {
             // TRY TO SET THIS AS PROPERTY OF SHELL VIEW MODELS
             var reflexConnection = new ReflexConnectionModel ();
 
-            // Index needed for reaching UpcCode in bindable collection in foreach loop
-            int i = 0;
+            // First we are going to download and save in a dictionary.
+            var Ean_Upc = reflexConnection.DownloadUpcForItemsAsync(CountedHd.ListOfIpgs);
 
             //            This: v   is returning bindable collection of IPG's
-            foreach (var Ipg in reflexConnection.DownloadUpcForItemsAsync (CountedHd.ListOfIpgs))
+            foreach (var Ipg in CountedHd.ListOfIpgs)
             {
-                CountedHd.ListOfIpgs[i].UpcCode = Ipg.UpcCode;
-                i++;
+                // Take EAN items from IPG, look for a key in dictionary, and assign it to UPC.
+                Ipg.UpcCode = Ean_Upc[Ipg.Item];
             }
 
             // Unfortunately needed for updating DataGrid.
