@@ -119,7 +119,7 @@ namespace HdSplit.ViewModels {
                         {
                             PreviousInformationText = InformationText;
                         }
-                        NotifyAboutIncorrectHdAsync ();
+                        Notify ("Incorrect HD");
 
                         return;
                     }
@@ -132,11 +132,9 @@ namespace HdSplit.ViewModels {
 
                         // IF is checking if HD is unknown. IF yes then ScanHd return false, and Information label is updated.
                         if (!ScanHd ()) {
-                            if (!ErrorLabelShowRunning) {
-                                PreviousInformationText = InformationText;
-                            }
 
-                            NotifyAboutHdUnknownAsync ();
+
+                            Notify ("Hd Unknown");
                             ScannedBarcode = string.Empty;
                             return;
                         }
@@ -149,12 +147,47 @@ namespace HdSplit.ViewModels {
 
                         // As it says...
                         DownloadUpc ();
+                        ScanningState = States.itemScan;
+                        InformationText = "Scan item.";
                     });
                     Console.WriteLine("Jestem już poza DownloadUPC");
                 }
                 else if (ScanningState == States.itemScan)
                 {
+                    
                     // And rest of logic here....
+                    bool ItemNotFound = true;
+                    try
+                    {
+                        foreach (var Ipg in CountedHd.ListOfIpgs) {
+                            if (Ipg.Item == ScannedBarcode) {
+                                ItemNotFound = false;
+                                Ipg.Quantity--;
+                                if (Ipg.Quantity == 0) {
+                                    CountedHd.ListOfIpgs.RemoveAt (CountedHd.ListOfIpgs.IndexOf (Ipg));
+                                }
+
+                                if (CountedHd.ListOfIpgs.Count == 0)
+                                {
+                                    Restart();
+                                }
+                                return;
+                            }
+
+                        }
+
+                        if (ItemNotFound) {
+                            Notify ("This item do not belong to this HD.");
+                            return;
+                        }
+                    }
+                    finally
+                    {
+                        ScannedBarcode = string.Empty;
+                    }
+                    
+
+                    
                 }
 
                 //Tutaj jest kod który usuwa IPG z hd jeśli ilość dotarła do 0.                    
@@ -165,6 +198,18 @@ namespace HdSplit.ViewModels {
                 //OriginalHd.ListOfIpgs.Refresh ();
 
             }
+        }
+
+        public void Restart()
+        {
+            CountedHd = null;
+            CountedHd = new HdModel(false);
+            OriginalHd = null;
+            OriginalHd = new HdModel (false);
+            ScanningState = States.firstScanOfHd;
+            InformationText = "Scan HD to start splitting";
+            ErrorLabelShowRunning = false;
+            HdNumber = string.Empty;
         }
 
 
@@ -193,8 +238,12 @@ namespace HdSplit.ViewModels {
             }
         }
 
-        private async Task NotifyAboutHdUnknownAsync() {
-            string _message = "Hd Unknown";
+        private async Task Notify(string _message) {
+            if (!ErrorLabelShowRunning) {
+                PreviousInformationText = InformationText;
+            }
+
+            //string _message = "Hd Unknown";
             ErrorLabelShowRunning = true;
             if (NotifyAboutIncorrectHdAsyncThread != null) {
                 NotifyAboutIncorrectHdAsyncThread.Abort ();
@@ -205,7 +254,7 @@ namespace HdSplit.ViewModels {
             await Task.Run (() => {
 
                 NotifyAboutIncorrectHdAsyncThread = Thread.CurrentThread;
-                System.Threading.Thread.Sleep (4000);
+                System.Threading.Thread.Sleep (3000);
             });
 
             if (InformationText == _message) {

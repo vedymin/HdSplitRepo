@@ -38,8 +38,9 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20"/>
                 <ColumnDefinition Width="200"/>
-                <ColumnDefinition Width="400"/>
+                <ColumnDefinition Width="800"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="20"/>
             </Grid.ColumnDefinitions>
             <Label FontSize="30" Grid.Column="1" 
@@ -49,6 +50,7 @@
                    FontSize="30" Grid.Column="2" 
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"></TextBlock>
+            <Button x:Name="Restart" Grid.Column="4" Margin="15">Reset</Button>
         </Grid>
 
         <DataGrid x:Name="MyData" Grid.Row="2" Grid.Column="1" 
