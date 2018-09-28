@@ -15,15 +15,82 @@ namespace HdSplit.ViewModels {
         // For some reason needed for infotmation label.
         private Thread NotifyAboutIncorrectHdAsyncThread = null;
 
-
         private HdModel _originalHd = new HdModel (false);
+        public HdModel OriginalHd
+        {
+            get { return _originalHd; }
+            set
+            {
+                _originalHd = value;
+                NotifyOfPropertyChange(() => OriginalHd);
+                NotifyOfPropertyChange (() => OriginalHd.HdNumber);
+            }
+        }
+
         private HdModel _countedHd = new HdModel (false);
+        public HdModel CountedHd {
+            get { return _countedHd; }
+            set {
+                _countedHd = value;
+                NotifyOfPropertyChange (() => CountedHd);
+            }
+        }
+
         private string _hdNumber;
+        public string HdNumber
+        {
+            get { return _hdNumber; }
+            set {
+                _hdNumber = value;
+                NotifyOfPropertyChange (() => OriginalHd.HdNumber);
+            }
+        }
+
         private States _scanningState;
+        public States ScanningState
+        {
+            get { return _scanningState; }
+            set { _scanningState = value; }
+        }
+
         private string _scannedBarcode;
+        public string ScannedBarcode
+        {
+            get { return _scannedBarcode; }
+            set
+            {
+                _scannedBarcode = value;
+                NotifyOfPropertyChange(() => ScannedBarcode);
+            }
+        }
+
         private string _informationText;
+        public string InformationText {
+            get { return _informationText; }
+            set {
+                _informationText = value;
+                NotifyOfPropertyChange (() => InformationText);
+            }
+        }
+
         private string _previousInformationText;
+        public string PreviousInformationText {
+            get { return _previousInformationText; }
+            set {
+                _previousInformationText = value;
+                NotifyOfPropertyChange (() => PreviousInformationText);
+            }
+        }
+
         private bool _hdTaskIsRunning;
+        public bool HdTaskIsRunning {
+            get { return _hdTaskIsRunning; }
+            set {
+                _hdTaskIsRunning = value;
+                NotifyOfPropertyChange(() => HdTaskIsRunning);
+                NotifyOfPropertyChange(() => CanScanItemAsync);
+            }
+        }
 
         private Brush _background;
         public Brush Background {
@@ -37,91 +104,19 @@ namespace HdSplit.ViewModels {
             }
         }
 
+        public bool ErrorLabelShowRunning { get; set; }
+        public bool CanScanItemAsync
+        {
+            get { return !HdTaskIsRunning; }
+        }
+        public ReflexConnectionModel ReflexConnection = new ReflexConnectionModel();
+
         public ShellViewModel()
         {
             InformationText = "Scan HD to start splitting";
             ErrorLabelShowRunning = false;
             HdTaskIsRunning = false;
 
-        }
-
-        public bool HdTaskIsRunning {
-            get { return _hdTaskIsRunning; }
-            set {
-                _hdTaskIsRunning = value;
-                NotifyOfPropertyChange(() => HdTaskIsRunning);
-                NotifyOfPropertyChange(() => CanScanItemAsync);
-            }
-        }
-
-        public bool ErrorLabelShowRunning { get; set; }
-
-
-        public string HdNumber
-        {
-            get { return _hdNumber; }
-            set {
-                _hdNumber = value;
-                NotifyOfPropertyChange (() => OriginalHd.HdNumber);
-            }
-        }
-
-        public HdModel OriginalHd
-        {
-            get { return _originalHd; }
-            set
-            {
-                _originalHd = value;
-                NotifyOfPropertyChange(() => OriginalHd);
-                NotifyOfPropertyChange (() => OriginalHd.HdNumber);
-            }
-        }
-
-        public HdModel CountedHd {
-            get { return _countedHd; }
-            set {
-                _countedHd = value;
-                NotifyOfPropertyChange (() => CountedHd);
-            }
-        }
-
-        public ReflexConnectionModel ReflexConnection = new ReflexConnectionModel();
-
-        public States ScanningState
-        {
-            get { return _scanningState; }
-            set { _scanningState = value; }
-        }
-
-        public string ScannedBarcode
-        {
-            get { return _scannedBarcode; }
-            set
-            {
-                _scannedBarcode = value;
-                NotifyOfPropertyChange(() => ScannedBarcode);
-            }
-        }
-
-        public string InformationText {
-            get { return _informationText; }
-            set {
-                _informationText = value;
-                NotifyOfPropertyChange (() => InformationText);
-            }
-        }
-
-        public string PreviousInformationText {
-            get { return _previousInformationText; }
-            set {
-                _previousInformationText = value;
-                NotifyOfPropertyChange (() => PreviousInformationText);
-            }
-        }
-
-        public bool CanScanItemAsync
-        {
-            get { return !HdTaskIsRunning; }
         }
 
         /// <summary>
