@@ -45,30 +45,33 @@
             <Label FontSize="30" Grid.Column="1" 
                    HorizontalContentAlignment="Center" 
                    VerticalContentAlignment="Center">HD Number:</Label>
-            <TextBlock x:Name="HdNumber"
+            <TextBlock x:Name="HdNumber" 
                    FontSize="30" Grid.Column="2" 
-                   HorizontalAlignment="Center"
+                   HorizontalAlignment="Left"
                    VerticalAlignment="Center"></TextBlock>
             <Button x:Name="Restart" Grid.Column="4" Margin="15">Reset</Button>
         </Grid>
-
-        <DataGrid x:Name="MyData" Grid.Row="2" Grid.Column="1" 
-                  AlternatingRowBackground="LightBlue" AlternationCount="2"
-                  CanUserAddRows="False" 
-                  HorizontalGridLinesBrush="#FFC7C7C7"
-                  AutoGenerateColumns="False"
-                  ItemsSource="{Binding Path=CountedHd.ListOfIpgs, Mode=TwoWay}">
-            <DataGrid.Effect>
+        <TabControl x:Name="TabControl" Grid.Row="2" Grid.Column="1"  >
+            <TabControl.Effect>
                 <DropShadowEffect/>
-            </DataGrid.Effect>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Article" Binding="{Binding Item}" Width="*"/>
-                <DataGridTextColumn Header="Line" Binding="{Binding Line, Converter={StaticResource LineConverter}}" Width="*"/>
-                <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="*"/>
-                <DataGridTextColumn Header="Grade" Binding="{Binding Grade}" Width="*"/>
-                <DataGridTextColumn Header="Upc Code" Binding="{Binding UpcCode}" Width="*"/>
-            </DataGrid.Columns>
-        </DataGrid>
+            </TabControl.Effect>
+            <TabItem Header="{Binding HdNumber}" FontSize="12">
+                <DataGrid x:Name="MyData" FontSize="20"
+                          AlternatingRowBackground="LightBlue" AlternationCount="2"
+                          CanUserAddRows="False" 
+                          HorizontalGridLinesBrush="#FFC7C7C7"
+                          AutoGenerateColumns="False"
+                          ItemsSource="{Binding Path=CountedHd.ListOfIpgs, Mode=TwoWay}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Article" Binding="{Binding Item}" Width="*"/>
+                        <DataGridTextColumn Header="Line" Binding="{Binding Line, Converter={StaticResource LineConverter}}" Width="*"/>
+                        <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="*"/>
+                        <DataGridTextColumn Header="Grade" Binding="{Binding Grade}" Width="*"/>
+                        <DataGridTextColumn Header="Upc Code" Binding="{Binding UpcCode}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+        </TabControl>
         <!--ItemsSource="{Binding Path=CountedHd.ListOfIpgs, Mode=TwoWay}-->
 
         <!--<TextBlock Grid.Row="1" Grid.Column="1"
@@ -100,7 +103,7 @@
                      FontSize="25" 
                      cal:Message.Attach="[Event KeyDown] = [Action ScanItemAsync($eventArgs)]"/>
             <Button Grid.Column="1" Margin="15" 
-                    cal:Message.Attach="[Event Click] = [Action ScanItemAsync($eventArgs)]">Scan</Button>
+                    cal:Message.Attach="[Event MouseLeftButtonDown] = [Action ScanItemAsync($eventArgs)]">Scan</Button>
         </Grid>
         
 

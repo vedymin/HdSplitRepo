@@ -10,7 +10,7 @@ using HdSplit.Models;
 using OperationCanceledException = System.OperationCanceledException;
 
 namespace HdSplit.ViewModels {
-    internal class ShellViewModel : Screen
+    internal class ShellViewModel : PropertyChangedBase
     {
         // For some reason needed for infotmation label.
         private Thread NotifyAboutIncorrectHdAsyncThread = null;
@@ -23,6 +23,7 @@ namespace HdSplit.ViewModels {
         private string _scannedBarcode;
         private string _informationText;
         private string _previousInformationText;
+        private bool _hdTaskIsRunning;
 
         private Brush _background;
         public Brush Background {
@@ -36,20 +37,25 @@ namespace HdSplit.ViewModels {
             }
         }
 
+        public ShellViewModel()
+        {
+            InformationText = "Scan HD to start splitting";
+            ErrorLabelShowRunning = false;
+            HdTaskIsRunning = false;
+
+        }
+
+        public bool HdTaskIsRunning {
+            get { return _hdTaskIsRunning; }
+            set {
+                _hdTaskIsRunning = value;
+                NotifyOfPropertyChange(() => HdTaskIsRunning);
+                NotifyOfPropertyChange(() => CanScanItemAsync);
+            }
+        }
 
         public bool ErrorLabelShowRunning { get; set; }
 
-        public ShellViewModel()
-        {
-            //var OriginalHd = new HdModel (true);
-            //var CountedHd = new HdModel(false);
-            //var ReflexConnection = new ReflexConnectionModel();
-            //CopyOriginalHdToCountedHd ();
-            InformationText = "Scan HD to start splitting";
-            ErrorLabelShowRunning = false;
-            //Background = new SolidColorBrush(Colors.Green);
-            
-        }
 
         public string HdNumber
         {
@@ -113,6 +119,10 @@ namespace HdSplit.ViewModels {
             }
         }
 
+        public bool CanScanItemAsync
+        {
+            get { return !HdTaskIsRunning; }
+        }
 
         /// <summary>
         /// Reaction to scan button click or to press enter inside scanning box.
@@ -121,10 +131,11 @@ namespace HdSplit.ViewModels {
         /// <returns></returns>
         public async Task ScanItemAsync(KeyEventArgs keyArgs) 
         {
+            
             // keyArgs will be null if user clicked button scan.
             // IF also checking if there is enter pressed.
             if (keyArgs == null || keyArgs.Key == Key.Enter) {
-
+                
                 // IF checking about the state. Always start from firstScanOfHd. State needs to be set also in Reset().
                 if (ScanningState == States.firstScanOfHd)
                 {
@@ -138,13 +149,15 @@ namespace HdSplit.ViewModels {
 
                         return;
                     }
-
+                    
                     // Hd is validated, so here we are going to download all information asynchronized.
                     await Task.Factory.StartNew (() =>
                     {
+                        
+
                         // Save scanned barcoded so we can use it later.
                         OriginalHd.HdNumber = ScannedBarcode;
-
+                        HdTaskIsRunning = true;
                         // IF is checking if HD is unknown. IF yes then ScanHd return false, and Information label is updated.
                         if (!ScanHd ()) {
 
@@ -164,20 +177,23 @@ namespace HdSplit.ViewModels {
                         DownloadUpc ();
                         ScanningState = States.itemScan;
                         InformationText = "Scan item.";
+                        HdTaskIsRunning = false;
                     });
                     Console.WriteLine("Jestem już poza DownloadUPC");
+                    
                 }
                 else if (ScanningState == States.itemScan)
                 {
                     
-                    // And rest of logic here....
                     bool ItemNotFound = true;
                     try
                     {
-                        foreach (var Ipg in CountedHd.ListOfIpgs) {
+                        foreach (var Ipg in CountedHd.ListOfIpgs)
+                        {
                             if (Ipg.Item == ScannedBarcode || Ipg.UpcCode == ScannedBarcode) {
                                 ItemNotFound = false;
                                 Ipg.Quantity--;
+                                CountedHd.ListOfIpgs.Refresh();
                                 if (Ipg.Quantity == 0) {
                                     CountedHd.ListOfIpgs.RemoveAt (CountedHd.ListOfIpgs.IndexOf (Ipg));
                                 }
@@ -225,33 +241,10 @@ namespace HdSplit.ViewModels {
             InformationText = "Scan HD to start splitting";
             ErrorLabelShowRunning = false;
             HdNumber = string.Empty;
+            Background = new SolidColorBrush(Colors.Transparent);
+            HdTaskIsRunning = false;
         }
 
-
-        // Those two are very similar. Maybe you can join them, but better would be to
-        // rewrite behaviour of information label.
-        private async Task NotifyAboutIncorrectHdAsync()
-        {
-            ErrorLabelShowRunning = true;
-            if (NotifyAboutIncorrectHdAsyncThread != null)
-            {
-                NotifyAboutIncorrectHdAsyncThread.Abort ();
-                NotifyAboutIncorrectHdAsyncThread = null;
-            }
-            
-            InformationText = "This is not correct HD";
-            await Task.Run(() =>
-            {
-
-                NotifyAboutIncorrectHdAsyncThread = Thread.CurrentThread;
-                System.Threading.Thread.Sleep(4000);
-            });
-
-            if (InformationText == "This is not correct HD") {
-                InformationText = PreviousInformationText;
-                ErrorLabelShowRunning = false;
-            }
-        }
 
         private async Task Notify(string _message, Brush color) {
             
@@ -265,7 +258,7 @@ namespace HdSplit.ViewModels {
             if (NotifyAboutIncorrectHdAsyncThread != null) {
                 NotifyAboutIncorrectHdAsyncThread.Abort ();
                 NotifyAboutIncorrectHdAsyncThread = null;
-                Background = new SolidColorBrush (Colors.White);
+                Background = new SolidColorBrush (Colors.Transparent);
             }
 
             InformationText = _message;
@@ -278,7 +271,7 @@ namespace HdSplit.ViewModels {
             if (InformationText == _message) {
                 InformationText = PreviousInformationText;
                 ErrorLabelShowRunning = false;
-                Background = new SolidColorBrush (Colors.White);
+                Background = new SolidColorBrush (Colors.Transparent);
             }
         }
         // End of information label functions.
