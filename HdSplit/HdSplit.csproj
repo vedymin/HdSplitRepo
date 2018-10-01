@@ -71,6 +71,7 @@
       <HintPath>..\..\..\..\..\..\Program Files (x86)\IBM\Client Access\IBM.Data.DB2.iSeries.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -98,8 +99,12 @@
     <Compile Include="Models\HdModel.cs" />
     <Compile Include="Models\IpgModel.cs" />
     <Compile Include="Models\ReflexConnectionModel.cs" />
+    <Compile Include="ViewModels\HdDataGridViewModel.cs" />
     <Compile Include="ViewModels\LineConverter.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />
+    <Compile Include="Views\HdDataGridView.xaml.cs">
+      <DependentUpon>HdDataGridView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ShellView.xaml.cs">
       <DependentUpon>ShellView.xaml</DependentUpon>
     </Compile>
@@ -145,6 +150,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Views\HdDataGridView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\ShellView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
