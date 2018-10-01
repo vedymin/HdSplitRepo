@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="HdSplit.Views.HdDataGridView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:HdSplit.Views"
+             xmlns:viewModels="clr-namespace:HdSplit.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <Style TargetType="DataGridCell">
+            <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <viewModels:LineConverter x:Key="LineConverter" />
+    </UserControl.Resources>
+
+    <DataGrid x:Name="MyData" FontSize="20"
+              AlternatingRowBackground="LightBlue" AlternationCount="2"
+              CanUserAddRows="False" 
+              HorizontalGridLinesBrush="#FFC7C7C7"
+              AutoGenerateColumns="False"
+              ItemsSource="{Binding Path=ListOfIpgs, Mode=TwoWay}">
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Article" Binding="{Binding Item}" Width="*"/>
+            <DataGridTextColumn Header="Line" Binding="{Binding Line, Converter={StaticResource LineConverter}}" Width="*"/>
+            <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="*"/>
+            <DataGridTextColumn Header="Grade" Binding="{Binding Grade}" Width="*"/>
+            <DataGridTextColumn Header="Upc Code" Binding="{Binding UpcCode}" Width="*"/>
+        </DataGrid.Columns>
+    </DataGrid>
+</UserControl>

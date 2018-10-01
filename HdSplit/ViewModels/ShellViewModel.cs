@@ -1,8 +1,12 @@
 ﻿using System;
+using System.ComponentModel.Composition;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Caliburn.Micro;
@@ -10,42 +14,40 @@ using HdSplit.Models;
 using OperationCanceledException = System.OperationCanceledException;
 
 namespace HdSplit.ViewModels {
-    internal class ShellViewModel : PropertyChangedBase
+
+    [Export(typeof(ShellViewModel))]
+    public class ShellViewModel : PropertyChangedBase
     {
-        // For some reason needed for infotmation label.
+        // For some reason needed for information label.
         private Thread NotifyAboutIncorrectHdAsyncThread = null;
 
-        private HdModel _originalHd = new HdModel (false);
-        public HdModel OriginalHd
-        {
-            get { return _originalHd; }
-            set
-            {
-                _originalHd = value;
-                NotifyOfPropertyChange(() => OriginalHd);
-                NotifyOfPropertyChange (() => OriginalHd.HdNumber);
-            }
-        }
-
-        private HdModel _countedHd = new HdModel (false);
-        public HdModel CountedHd {
-            get { return _countedHd; }
-            set {
-                _countedHd = value;
-                NotifyOfPropertyChange (() => CountedHd);
-            }
-        }
-
         private string _hdNumber;
-        public string HdNumber
-        {
+        public string HdNumber {
             get { return _hdNumber; }
             set {
                 _hdNumber = value;
-                NotifyOfPropertyChange (() => OriginalHd.HdNumber);
+                NotifyOfPropertyChange (() => HdDataGridModel.OriginalHd.HdNumber);
             }
         }
 
+        private int _selectedTab;
+        public int SelectedTab {
+            get { return _selectedTab; }
+            set {
+                _selectedTab = value;
+                NotifyOfPropertyChange(() => SelectedTab);
+            }
+        }
+
+        private BindableCollection<HdModel> _hds;
+        public BindableCollection<HdModel> Hds {
+            get { return _hds; }
+            set {
+                _hds = value;
+                NotifyOfPropertyChange(() => Hds);
+            }
+        }
+        
         private States _scanningState;
         public States ScanningState
         {
@@ -111,12 +113,17 @@ namespace HdSplit.ViewModels {
         }
         public ReflexConnectionModel ReflexConnection = new ReflexConnectionModel();
 
-        public ShellViewModel()
+        public HdDataGridViewModel HdDataGridModel { get; private set; }
+
+        [ImportingConstructor]
+        public ShellViewModel(HdDataGridViewModel hdDataGridModel)
         {
             InformationText = "Scan HD to start splitting";
             ErrorLabelShowRunning = false;
             HdTaskIsRunning = false;
-
+            HdDataGridModel = hdDataGridModel;
+            Hds = new BindableCollection<HdModel>();
+            SelectedTab = 0;
         }
 
         /// <summary>
@@ -135,7 +142,7 @@ namespace HdSplit.ViewModels {
                 if (ScanningState == States.firstScanOfHd)
                 {
                     // Validation of hd, and also updating info label. Needs to be refactored.
-                    if (!CountedHd.CheckIfHdNumberIsCorrect (ScannedBarcode)) {
+                    if (!HdDataGridModel.CountedHd.CheckIfHdNumberIsCorrect (ScannedBarcode)) {
                         if (!ErrorLabelShowRunning) 
                         {
                             PreviousInformationText = InformationText;
@@ -148,10 +155,11 @@ namespace HdSplit.ViewModels {
                     // Hd is validated, so here we are going to download all information asynchronized.
                     await Task.Factory.StartNew (() =>
                     {
-                        
+
 
                         // Save scanned barcoded so we can use it later.
-                        OriginalHd.HdNumber = ScannedBarcode;
+                        HdDataGridModel.OriginalHd.HdNumber = ScannedBarcode;
+                        HdDataGridModel.CountedHd.HdNumber = ScannedBarcode;
                         HdTaskIsRunning = true;
                         // IF is checking if HD is unknown. IF yes then ScanHd return false, and Information label is updated.
                         if (!ScanHd ()) {
@@ -163,7 +171,7 @@ namespace HdSplit.ViewModels {
                         }
                         
                         // HdNumber is binded to label on top of the program where you can see which HD user scanned.
-                        HdNumber = OriginalHd.HdNumber;
+                        HdNumber = HdDataGridModel.OriginalHd.HdNumber;
 
                         // Clearing scanning box
                         ScannedBarcode = string.Empty;
@@ -173,6 +181,8 @@ namespace HdSplit.ViewModels {
                         ScanningState = States.itemScan;
                         InformationText = "Scan item.";
                         HdTaskIsRunning = false;
+                        Hds.Add(HdDataGridModel.CountedHd);
+                        SelectedTab = 0;
                     });
                     Console.WriteLine("Jestem już poza DownloadUPC");
                     
@@ -183,17 +193,18 @@ namespace HdSplit.ViewModels {
                     bool ItemNotFound = true;
                     try
                     {
-                        foreach (var Ipg in CountedHd.ListOfIpgs)
+                        foreach (var Ipg in HdDataGridModel.CountedHd.ListOfIpgs)
                         {
                             if (Ipg.Item == ScannedBarcode || Ipg.UpcCode == ScannedBarcode) {
                                 ItemNotFound = false;
                                 Ipg.Quantity--;
-                                CountedHd.ListOfIpgs.Refresh();
+                                //Hds.Add(new HdModel(true){HdNumber = "test"});
+                                HdDataGridModel.CountedHd.ListOfIpgs.Refresh();
                                 if (Ipg.Quantity == 0) {
-                                    CountedHd.ListOfIpgs.RemoveAt (CountedHd.ListOfIpgs.IndexOf (Ipg));
+                                    HdDataGridModel.CountedHd.ListOfIpgs.RemoveAt (HdDataGridModel.CountedHd.ListOfIpgs.IndexOf (Ipg));
                                 }
 
-                                if (CountedHd.ListOfIpgs.Count == 0)
+                                if (HdDataGridModel.CountedHd.ListOfIpgs.Count == 0)
                                 {
                                     Restart();
                                 }
@@ -211,33 +222,24 @@ namespace HdSplit.ViewModels {
                     {
                         ScannedBarcode = string.Empty;
                     }
-                    
-
-                    
                 }
-
-                //Tutaj jest kod który usuwa IPG z hd jeśli ilość dotarła do 0.                    
-                //SelectedIpg.Quantity--;
-                //if (SelectedIpg.Quantity == 0) {
-                //    OriginalHd.ListOfIpgs.RemoveAt (OriginalHd.ListOfIpgs.IndexOf (SelectedIpg));
-                //}
-                //OriginalHd.ListOfIpgs.Refresh ();
-
             }
         }
 
         public void Restart()
         {
-            CountedHd = null;
-            CountedHd = new HdModel(false);
-            OriginalHd = null;
-            OriginalHd = new HdModel (false);
+            HdDataGridModel.CountedHd = null;
+            HdDataGridModel.CountedHd = new HdModel(false);
+            HdDataGridModel.OriginalHd = null;
+            HdDataGridModel.OriginalHd = new HdModel (false);
+            Hds.Clear();
             ScanningState = States.firstScanOfHd;
             InformationText = "Scan HD to start splitting";
             ErrorLabelShowRunning = false;
             HdNumber = string.Empty;
             Background = new SolidColorBrush(Colors.Transparent);
             HdTaskIsRunning = false;
+            SelectedTab = 0;
         }
 
 
@@ -276,7 +278,7 @@ namespace HdSplit.ViewModels {
         public void CopyOriginalHdToCountedHd()
         {
             foreach (PropertyInfo property in typeof (HdModel).GetProperties ()) {
-                property.SetValue (CountedHd, property.GetValue (OriginalHd, null), null);
+                property.SetValue (HdDataGridModel.CountedHd, property.GetValue (HdDataGridModel.OriginalHd, null), null);
             }
         }
 
@@ -288,8 +290,8 @@ namespace HdSplit.ViewModels {
         {
             // Clearing info about already working on HD's. Later should after Confirm function return all is done.
             // Can be moved also to Reset button. You need oto reset anyway when you are scanning the HD. 
-            CountedHd.ListOfIpgs.Clear ();
-            OriginalHd.ListOfIpgs.Clear ();
+            HdDataGridModel.CountedHd.ListOfIpgs.Clear ();
+            HdDataGridModel.OriginalHd.ListOfIpgs.Clear ();
 
             // Creating instance of reflex connection so we can work with its HD instance.
             // This is needed for passing back HD info from reflex connection to ShellViewModel instance of OriginalHD and COunted HD.
@@ -298,15 +300,18 @@ namespace HdSplit.ViewModels {
 
             // IF checks here if we have some data inside reflexConnection.Hd.
             // If not then this function return HD unknown (false)
-            if (reflexConnection.DownloadHdFromReflex (OriginalHd.HdNumber))
+            if (reflexConnection.DownloadHdFromReflex (HdDataGridModel.OriginalHd.HdNumber))
             {
                 // Tricky way to copy one hd to another. Needs to go thru properties manually.
                 // There is porobably better way with function CopyOriginalHdToCountedHd().
                 foreach (var Ipg in reflexConnection.OriginalHdModel.ListOfIpgs)
                 {
                     // It is copied to original and counted at once. Question is it will change only counted or also original???
-                    CountedHd.ListOfIpgs.Add (new IpgModel () {Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
-                    OriginalHd.ListOfIpgs.Add (new IpgModel () { Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
+                    //CountedHd.ListOfIpgs.Add (new IpgModel () {Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
+                    //OriginalHd.ListOfIpgs.Add (new IpgModel () { Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
+
+                    HdDataGridModel.CountedHd.ListOfIpgs.Add(new IpgModel() { Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
+                    HdDataGridModel.OriginalHd.ListOfIpgs.Add(new IpgModel() { Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
                 }
                 // We still have some data so return true.
                 return true;
@@ -330,17 +335,23 @@ namespace HdSplit.ViewModels {
             var reflexConnection = new ReflexConnectionModel ();
 
             // First we are going to download and save in a dictionary.
-            var Ean_Upc = reflexConnection.DownloadUpcForItemsAsync(CountedHd.ListOfIpgs);
+            var Ean_Upc = reflexConnection.DownloadUpcForItemsAsync(HdDataGridModel.CountedHd.ListOfIpgs);
 
             //            This: v   is returning bindable collection of IPG's
-            foreach (var Ipg in CountedHd.ListOfIpgs)
+            foreach (var Ipg in HdDataGridModel.CountedHd.ListOfIpgs)
+            {
+                // Take EAN items from IPG, look for a key in dictionary, and assign it to UPC.
+                Ipg.UpcCode = Ean_Upc[Ipg.Item];
+            }
+
+            foreach (var Ipg in HdDataGridModel.OriginalHd.ListOfIpgs)
             {
                 // Take EAN items from IPG, look for a key in dictionary, and assign it to UPC.
                 Ipg.UpcCode = Ean_Upc[Ipg.Item];
             }
 
             // Unfortunately needed for updating DataGrid.
-            CountedHd.ListOfIpgs.Refresh ();
+            HdDataGridModel.CountedHd.ListOfIpgs.Refresh ();
         }
     }
 }

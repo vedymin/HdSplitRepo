@@ -6,6 +6,7 @@
         xmlns:cal="http://www.caliburnproject.org"
         xmlns:local="clr-namespace:HdSplit.Views"
         xmlns:viewModels="clr-namespace:HdSplit.ViewModels"
+        xmlns:views="clr-namespace:HdSplit.Views"
         mc:Ignorable="d" FontSize="18"
         Title="HD Split/Check" Height="800" Width="1200" WindowStartupLocation="CenterScreen">
     <Window.Resources>
@@ -17,7 +18,10 @@
         </Style>
         <viewModels:LineConverter x:Key="LineConverter" />
     </Window.Resources>
+
+
     <Grid>
+
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20"/>
             <ColumnDefinition Width="*"/>
@@ -33,6 +37,7 @@
             <RowDefinition Height="20"/>
         </Grid.RowDefinitions>
 
+        <!-- Top row -->
         <Grid Grid.Row="1" Grid.Column="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20"/>
@@ -51,35 +56,25 @@
                    VerticalAlignment="Center"></TextBlock>
             <Button x:Name="Restart" Grid.Column="4" Margin="15">Reset</Button>
         </Grid>
-        <TabControl x:Name="TabControl" Grid.Row="2" Grid.Column="1"  >
+
+        <!-- Tab control -->
+        <TabControl x:Name="TabControl" Grid.Row="2" Grid.Column="1" 
+                    ItemsSource="{Binding Hds}"
+                    SelectedIndex="{Binding SelectedTab}">
+            <TabControl.ItemContainerStyle>
+                <Style TargetType="TabItem">
+                    <Setter Property="Header" Value="{Binding TabHeader}"/>
+                </Style>
+            </TabControl.ItemContainerStyle>
             <TabControl.Effect>
                 <DropShadowEffect/>
             </TabControl.Effect>
-            <TabItem Header="{Binding HdNumber}" FontSize="12">
-                <DataGrid x:Name="MyData" FontSize="20"
-                          AlternatingRowBackground="LightBlue" AlternationCount="2"
-                          CanUserAddRows="False" 
-                          HorizontalGridLinesBrush="#FFC7C7C7"
-                          AutoGenerateColumns="False"
-                          ItemsSource="{Binding Path=CountedHd.ListOfIpgs, Mode=TwoWay}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Article" Binding="{Binding Item}" Width="*"/>
-                        <DataGridTextColumn Header="Line" Binding="{Binding Line, Converter={StaticResource LineConverter}}" Width="*"/>
-                        <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="*"/>
-                        <DataGridTextColumn Header="Grade" Binding="{Binding Grade}" Width="*"/>
-                        <DataGridTextColumn Header="Upc Code" Binding="{Binding UpcCode}" Width="*"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </TabItem>
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <local:HdDataGridView></local:HdDataGridView>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
         </TabControl>
-        <!--ItemsSource="{Binding Path=CountedHd.ListOfIpgs, Mode=TwoWay}-->
-
-        <!--<TextBlock Grid.Row="1" Grid.Column="1"
-                   Text="{Binding Path=FirstName}"/>-->
-        
-        <!--<ComboBox Name="ComboBox" Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Path=Hd}"
-                  SelectedItem="{Binding Path=SelectedIpg, Mode=OneWayToSource }"
-                  Dis playMemberPath="Item"/>-->
 
 
         <!-- Information text settings-->
@@ -103,7 +98,7 @@
                      FontSize="25" 
                      cal:Message.Attach="[Event KeyDown] = [Action ScanItemAsync($eventArgs)]"/>
             <Button Grid.Column="1" Margin="15" 
-                    cal:Message.Attach="[Event MouseLeftButtonDown] = [Action ScanItemAsync($eventArgs)]">Scan</Button>
+                    cal:Message.Attach="[Event Click] = [Action ScanItemAsync($eventArgs)]">Scan</Button>
         </Grid>
         
 
