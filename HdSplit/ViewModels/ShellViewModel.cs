@@ -1,17 +1,12 @@
 ﻿using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics.Tracing;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Caliburn.Micro;
 using HdSplit.Models;
-using OperationCanceledException = System.OperationCanceledException;
 
 namespace HdSplit.ViewModels {
 
@@ -113,6 +108,7 @@ namespace HdSplit.ViewModels {
         }
         public ReflexConnectionModel ReflexConnection = new ReflexConnectionModel();
 
+
         public HdDataGridViewModel HdDataGridModel { get; private set; }
 
         [ImportingConstructor]
@@ -137,7 +133,8 @@ namespace HdSplit.ViewModels {
             // keyArgs will be null if user clicked button scan.
             // IF also checking if there is enter pressed.
             if (keyArgs == null || keyArgs.Key == Key.Enter) {
-                
+
+                Sounds.PlayScanSound();
                 // IF checking about the state. Always start from firstScanOfHd. State needs to be set also in Reset().
                 if (ScanningState == States.firstScanOfHd)
                 {
@@ -196,6 +193,7 @@ namespace HdSplit.ViewModels {
                         foreach (var Ipg in HdDataGridModel.CountedHd.ListOfIpgs)
                         {
                             if (Ipg.Item == ScannedBarcode || Ipg.UpcCode == ScannedBarcode) {
+                                
                                 ItemNotFound = false;
                                 Ipg.Quantity--;
                                 //Hds.Add(new HdModel(true){HdNumber = "test"});
@@ -222,6 +220,9 @@ namespace HdSplit.ViewModels {
                     {
                         ScannedBarcode = string.Empty;
                     }
+                } else if (ScanningState == States.newHdScan)
+                {
+
                 }
             }
         }
@@ -353,5 +354,7 @@ namespace HdSplit.ViewModels {
             // Unfortunately needed for updating DataGrid.
             HdDataGridModel.CountedHd.ListOfIpgs.Refresh ();
         }
+
+       
     }
 }

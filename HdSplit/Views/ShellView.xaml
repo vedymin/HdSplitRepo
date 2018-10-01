@@ -4,7 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cal="http://www.caliburnproject.org"
-        xmlns:local="clr-namespace:HdSplit.Views"
         xmlns:viewModels="clr-namespace:HdSplit.ViewModels"
         xmlns:views="clr-namespace:HdSplit.Views"
         mc:Ignorable="d" FontSize="18"
@@ -71,7 +70,7 @@
             </TabControl.Effect>
             <TabControl.ContentTemplate>
                 <DataTemplate>
-                    <local:HdDataGridView></local:HdDataGridView>
+                    <views:HdDataGridView></views:HdDataGridView>
                 </DataTemplate>
             </TabControl.ContentTemplate>
         </TabControl>

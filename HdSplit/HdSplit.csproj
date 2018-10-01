@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{1793A30E-31DC-4F20-BA43-DE5D64E52F15}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>SplitHD</RootNamespace>
+    <RootNamespace>HdSplit</RootNamespace>
     <AssemblyName>SplitHD</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -99,6 +99,7 @@
     <Compile Include="Models\HdModel.cs" />
     <Compile Include="Models\IpgModel.cs" />
     <Compile Include="Models\ReflexConnectionModel.cs" />
+    <Compile Include="Models\Sounds.cs" />
     <Compile Include="ViewModels\HdDataGridViewModel.cs" />
     <Compile Include="ViewModels\LineConverter.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />
@@ -127,6 +128,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -161,6 +163,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="xpo_icon_XKt_icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\scan.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

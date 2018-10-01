@@ -1,9 +1,7 @@
-﻿using IBM.Data.DB2.iSeries;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Caliburn.Micro;
-using HdSplit.ViewModels;
+using IBM.Data.DB2.iSeries;
 
 namespace HdSplit.Models
 {

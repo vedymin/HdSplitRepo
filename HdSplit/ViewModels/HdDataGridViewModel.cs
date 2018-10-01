@@ -1,6 +1,6 @@
-﻿using Caliburn.Micro;
+﻿using System.ComponentModel.Composition;
+using Caliburn.Micro;
 using HdSplit.Models;
-using System.ComponentModel.Composition;
 
 namespace HdSplit.ViewModels
 {
