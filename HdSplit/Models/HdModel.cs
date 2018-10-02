@@ -7,6 +7,8 @@ namespace HdSplit.Models {
         public BindableCollection<IpgModel> ListOfIpgs { get; set; } = new BindableCollection<IpgModel> ();
         public string HdNumber { get; set; }
         public string TabHeader { get; set; }
+        public Lines Line { get; set; }
+        public string Grade { get; set; }
 
         public HdModel(Boolean original)
         {

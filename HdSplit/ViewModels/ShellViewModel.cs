@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -108,7 +109,7 @@ namespace HdSplit.ViewModels {
         }
         public ReflexConnectionModel ReflexConnection = new ReflexConnectionModel();
 
-
+        public IpgModel IpgToCreate { get; set; }
         public HdDataGridViewModel HdDataGridModel { get; private set; }
 
         [ImportingConstructor]
@@ -139,15 +140,7 @@ namespace HdSplit.ViewModels {
                 if (ScanningState == States.firstScanOfHd)
                 {
                     // Validation of hd, and also updating info label. Needs to be refactored.
-                    if (!HdDataGridModel.CountedHd.CheckIfHdNumberIsCorrect (ScannedBarcode)) {
-                        if (!ErrorLabelShowRunning) 
-                        {
-                            PreviousInformationText = InformationText;
-                        }
-                        Notify ("Incorrect HD", Background = new SolidColorBrush (Colors.Red));
-
-                        return;
-                    }
+                    if (ValidateHd()) return;
                     
                     // Hd is validated, so here we are going to download all information asynchronized.
                     await Task.Factory.StartNew (() =>
@@ -157,6 +150,7 @@ namespace HdSplit.ViewModels {
                         // Save scanned barcoded so we can use it later.
                         HdDataGridModel.OriginalHd.HdNumber = ScannedBarcode;
                         HdDataGridModel.CountedHd.HdNumber = ScannedBarcode;
+                        HdDataGridModel.CountedHd.TabHeader = ScannedBarcode;
                         HdTaskIsRunning = true;
                         // IF is checking if HD is unknown. IF yes then ScanHd return false, and Information label is updated.
                         if (!ScanHd ()) {
@@ -196,16 +190,18 @@ namespace HdSplit.ViewModels {
                                 
                                 ItemNotFound = false;
                                 Ipg.Quantity--;
-                                //Hds.Add(new HdModel(true){HdNumber = "test"});
+                                IpgToCreate = Ipg;
+                                //Hds.Add(new HdModel(false){HdNumber = "test"});
                                 HdDataGridModel.CountedHd.ListOfIpgs.Refresh();
                                 if (Ipg.Quantity == 0) {
                                     HdDataGridModel.CountedHd.ListOfIpgs.RemoveAt (HdDataGridModel.CountedHd.ListOfIpgs.IndexOf (Ipg));
                                 }
-
-                                if (HdDataGridModel.CountedHd.ListOfIpgs.Count == 0)
-                                {
-                                    Restart();
-                                }
+                                                        ScanningState = States.newHdScan;
+                        InformationText = $"Scan HD with Line {IpgToCreate.Line} and Grade {IpgToCreate.Grade}.";
+                                //if (HdDataGridModel.CountedHd.ListOfIpgs.Count == 0)
+                                //{
+                                //    Restart();
+                                //}
                                 return;
                             }
 
@@ -213,18 +209,123 @@ namespace HdSplit.ViewModels {
 
                         if (ItemNotFound) {
                             Notify ("This item do not belong to this HD.", new SolidColorBrush (Colors.Red));
+                            
                             return;
                         }
                     }
                     finally
                     {
                         ScannedBarcode = string.Empty;
+
                     }
-                } else if (ScanningState == States.newHdScan)
-                {
 
                 }
+                else if (ScanningState == States.newHdScan)
+                {
+                    if (ValidateHd()) return;
+
+                    if (SearchForHd(ScannedBarcode))
+                    {
+                        ScanningState = States.itemScan;
+                        InformationText = "Scan item.";
+                        ScannedBarcode = string.Empty;
+                        return;
+                    }
+
+                    
+                    
+                    
+                }
             }
+        }
+
+        public void AddIpgToExistingHd(int _index)
+        {
+            Hds[_index].ListOfIpgs.Add(new IpgModel()
+            {
+                Grade = IpgToCreate.Grade,
+                Item = IpgToCreate.Item,
+                Line = IpgToCreate.Line,
+                UpcCode = IpgToCreate.UpcCode,
+                Quantity = 1
+            });
+        }
+
+        public bool ValidateHd()
+        {
+            if (!HdDataGridModel.CountedHd.CheckIfHdNumberIsCorrect(ScannedBarcode))
+            {
+                if (!ErrorLabelShowRunning)
+                {
+                    PreviousInformationText = InformationText;
+                }
+
+                Notify("Incorrect HD", Background = new SolidColorBrush(Colors.Red));
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool SearchForHd(string _hd)
+        {
+            bool ItemFounded = false;
+            bool HdFounded = false;
+
+            for (int i = 1; i < Hds.Count; i++)
+            {
+                if (Hds[i].HdNumber == _hd)
+                {
+                    if (Hds[i].Line == IpgToCreate.Line && Hds[i].Grade == IpgToCreate.Grade)
+                    {
+                        foreach (var Ipg in Hds[i].ListOfIpgs)
+                        {
+                            if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
+                            {
+                                Ipg.Quantity++;
+                                ItemFounded = true;
+                                return true;
+                            }
+                        }
+
+                        if (!ItemFounded)
+                        {
+                            AddIpgToExistingHd(i);
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        Notify("This HD have wrong LINE/GRADE!", Brushes.Red);
+                        ScannedBarcode = String.Empty;
+                        return false;
+                    }
+                }
+
+            }
+
+            if (!HdFounded)
+            {
+                Hds.Add(new HdModel(false)
+                {
+                    Grade = IpgToCreate.Grade,
+                    Line = IpgToCreate.Line,
+                    HdNumber = ScannedBarcode,
+                    ListOfIpgs = new BindableCollection<IpgModel>(),
+                    TabHeader = $"{ScannedBarcode}/{IpgToCreate.Line}/{IpgToCreate.Grade}"
+                });
+
+                AddIpgToExistingHd(Hds.Count - 1);
+
+                ScanningState = States.itemScan;
+                InformationText = "Scan item.";
+                ScannedBarcode = string.Empty;
+                return false;
+                // Sprawdź ten HD w reflexie.
+            }
+
+            return false;
         }
 
         public void Restart()
