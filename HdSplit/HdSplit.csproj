@@ -102,6 +102,7 @@
     <Compile Include="Models\Sounds.cs" />
     <Compile Include="ViewModels\HdDataGridViewModel.cs" />
     <Compile Include="ViewModels\LineConverter.cs" />
+    <Compile Include="ViewModels\LineToHeaderConverter.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />
     <Compile Include="Views\HdDataGridView.xaml.cs">
       <DependentUpon>HdDataGridView.xaml</DependentUpon>

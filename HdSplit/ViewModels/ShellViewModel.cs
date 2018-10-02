@@ -196,8 +196,8 @@ namespace HdSplit.ViewModels {
                                 if (Ipg.Quantity == 0) {
                                     HdDataGridModel.CountedHd.ListOfIpgs.RemoveAt (HdDataGridModel.CountedHd.ListOfIpgs.IndexOf (Ipg));
                                 }
-                                                        ScanningState = States.newHdScan;
-                        InformationText = $"Scan HD with Line {IpgToCreate.Line} and Grade {IpgToCreate.Grade}.";
+                                ScanningState = States.newHdScan;
+                                InformationText = $"Scan HD with Line {IpgToCreate.Line}.";
                                 //if (HdDataGridModel.CountedHd.ListOfIpgs.Count == 0)
                                 //{
                                 //    Restart();
@@ -277,7 +277,7 @@ namespace HdSplit.ViewModels {
             {
                 if (Hds[i].HdNumber == _hd)
                 {
-                    if (Hds[i].Line == IpgToCreate.Line && Hds[i].Grade == IpgToCreate.Grade)
+                    if (Hds[i].Line == IpgToCreate.Line)
                     {
                         foreach (var Ipg in Hds[i].ListOfIpgs)
                         {
@@ -297,7 +297,7 @@ namespace HdSplit.ViewModels {
                     }
                     else
                     {
-                        Notify("This HD have wrong LINE/GRADE!", Brushes.Red);
+                        Notify("This HD have wrong LINE!", Brushes.Red);
                         ScannedBarcode = String.Empty;
                         return false;
                     }
@@ -313,7 +313,7 @@ namespace HdSplit.ViewModels {
                     Line = IpgToCreate.Line,
                     HdNumber = ScannedBarcode,
                     ListOfIpgs = new BindableCollection<IpgModel>(),
-                    TabHeader = $"{ScannedBarcode}/{IpgToCreate.Line}/{IpgToCreate.Grade}"
+                    TabHeader = $"{ScannedBarcode} - {IpgToCreate.Line.ToString()}"
                 });
 
                 AddIpgToExistingHd(Hds.Count - 1);

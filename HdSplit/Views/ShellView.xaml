@@ -15,7 +15,7 @@
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
-        <viewModels:LineConverter x:Key="LineConverter" />
+        <viewModels:LineToHeaderConverter x:Key="LineToHeaderConverter" />
     </Window.Resources>
 
 
@@ -62,7 +62,7 @@
                     SelectedIndex="{Binding SelectedTab}">
             <TabControl.ItemContainerStyle>
                 <Style TargetType="TabItem">
-                    <Setter Property="Header" Value="{Binding TabHeader}"/>
+                    <Setter Property="Header" Value="{Binding TabHeader, Converter={StaticResource LineToHeaderConverter}}"/>
                 </Style>
             </TabControl.ItemContainerStyle>
             <TabControl.Effect>
