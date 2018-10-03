@@ -43,7 +43,27 @@ namespace HdSplit.ViewModels {
                 NotifyOfPropertyChange(() => Hds);
             }
         }
-        
+
+        private BindableCollection<string> _sessionNames;
+        public BindableCollection<string> SessionNames 
+        {
+            get { return _sessionNames; }
+            set
+            {
+                _sessionNames = value;
+                NotifyOfPropertyChange(() => SessionNames);
+            }
+        }
+
+        private string _selectedSession;
+        public string SelecetedSession {
+            get { return _selectedSession; }
+            set {
+                _selectedSession = value;
+                NotifyOfPropertyChange(() => SelecetedSession);
+            }
+        }
+
         private States _scanningState;
         public States ScanningState
         {
@@ -121,6 +141,15 @@ namespace HdSplit.ViewModels {
             HdDataGridModel = hdDataGridModel;
             Hds = new BindableCollection<HdModel>();
             SelectedTab = 0;
+            RefreshTerminalSessionNames();
+        }
+
+        public void RefreshTerminalSessionNames()
+        {
+            var reflexTerminal = new ReflexTerminal();
+            SessionNames = reflexTerminal.GetAllConnections();
+            //SelecetedSession = SessionNames[0];
+            InformationText = reflexTerminal.CheckIfConnectionIsReady(SelecetedSession).ToString();
         }
 
         /// <summary>
@@ -307,21 +336,33 @@ namespace HdSplit.ViewModels {
 
             if (!HdFounded)
             {
-                Hds.Add(new HdModel(false)
+                var result = ScanHdToCheckLines(_hd);
+                if (result == HdResult.hdCorrect || result == HdResult.hdUnknown)
                 {
-                    Grade = IpgToCreate.Grade,
-                    Line = IpgToCreate.Line,
-                    HdNumber = ScannedBarcode,
-                    ListOfIpgs = new BindableCollection<IpgModel>(),
-                    TabHeader = $"{ScannedBarcode} - {IpgToCreate.Line.ToString()}"
-                });
+                    Hds.Add(new HdModel(false)
+                    {
+                        Grade = IpgToCreate.Grade,
+                        Line = IpgToCreate.Line,
+                        HdNumber = ScannedBarcode,
+                        ListOfIpgs = new BindableCollection<IpgModel>(),
+                        TabHeader = $"{ScannedBarcode} - {IpgToCreate.Line.ToString()}"
+                    });
 
-                AddIpgToExistingHd(Hds.Count - 1);
+                    AddIpgToExistingHd(Hds.Count - 1);
 
-                ScanningState = States.itemScan;
-                InformationText = "Scan item.";
-                ScannedBarcode = string.Empty;
-                return false;
+                    ScanningState = States.itemScan;
+                    InformationText = "Scan item.";
+                    ScannedBarcode = string.Empty;
+                    return false;
+                    
+                }
+                else if (result == HdResult.differentLine)
+                {
+                    Notify("This HD have wrong LINE!", Brushes.Red);
+                    ScannedBarcode = String.Empty;
+                    return false;
+                }
+
                 // Sprawdź ten HD w reflexie.
             }
 
@@ -342,6 +383,7 @@ namespace HdSplit.ViewModels {
             Background = new SolidColorBrush(Colors.Transparent);
             HdTaskIsRunning = false;
             SelectedTab = 0;
+            RefreshTerminalSessionNames();
         }
 
 
@@ -422,6 +464,41 @@ namespace HdSplit.ViewModels {
             {
                 // Hd is unknown
                 return false;
+            }
+        }
+
+        public HdResult ScanHdToCheckLines(string _hd)
+        {
+
+            // Creating instance of reflex connection so we can work with its HD instance.
+            // This is needed for passing back HD info from reflex connection to ShellViewModel instance of OriginalHD and COunted HD.
+            // TRY TO SET THIS AS PROPERTY OF SHELL VIEW MODELS
+            var reflexConnection = new ReflexConnectionModel();
+
+            // IF checks here if we have some data inside reflexConnection.Hd.
+            // If not then this function return HD unknown (false)
+            if (reflexConnection.DownloadHdFromReflex(_hd))
+            {
+                // Tricky way to copy one hd to another. Needs to go thru properties manually.
+                // There is porobably better way with function CopyOriginalHdToCountedHd().
+                foreach (var Ipg in reflexConnection.OriginalHdModel.ListOfIpgs)
+                {
+                    if (Ipg.Line == IpgToCreate.Line)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        return HdResult.differentLine;
+                    }
+                }
+                // We still have some data so return true.
+                return HdResult.hdCorrect;
+            }
+            else
+            {
+                // Hd is unknown
+                return HdResult.hdUnknown;
             }
         }
 

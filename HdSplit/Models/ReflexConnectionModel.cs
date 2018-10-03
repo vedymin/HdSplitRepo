@@ -83,7 +83,7 @@ namespace HdSplit.Models
                 conn.Close ();
             }
 
-            // This will never reach by needs to be here because of error "Not all is returning value".
+            // This will never reach but needs to be here because of error "Not all is returning value".
             return false;
         }
 

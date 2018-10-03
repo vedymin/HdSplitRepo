@@ -99,6 +99,7 @@
     <Compile Include="Models\HdModel.cs" />
     <Compile Include="Models\IpgModel.cs" />
     <Compile Include="Models\ReflexConnectionModel.cs" />
+    <Compile Include="Models\ReflexTerminal.cs" />
     <Compile Include="Models\Sounds.cs" />
     <Compile Include="ViewModels\HdDataGridViewModel.cs" />
     <Compile Include="ViewModels\LineConverter.cs" />
@@ -167,6 +168,107 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\scan.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="AutConnListTypeLibrary">
+      <Guid>{3CB39CC0-6F18-11D0-910D-0004AC3617E1}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="AutConnMgrTypeLibrary">
+      <Guid>{4E084A80-8FE7-11D0-9125-0004AC3617E1}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="AutOIATypeLibrary">
+      <Guid>{20218610-84F0-11D0-911C-0004AC3617E1}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="AutPSTypeLibrary">
+      <Guid>{891FC4A0-7DD8-11D0-9112-0004AC3617E1}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="AutScreenDescTypeLibrary">
+      <Guid>{0D30E740-270A-11D2-A3D4-000629B05A9E}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="AutScreenRecoTypeLibrary">
+      <Guid>{20D74AB0-271D-11D2-A3D5-000629B05A9E}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="AutSessTypeLibrary">
+      <Guid>{BC069CF1-4D46-11D0-90FB-0004AC3617E1}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="AutSettingsTypeLibrary">
+      <Guid>{74CB4ED2-B5C4-46D9-8F25-3C860AB87017}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="AutSystemTypeLibrary">
+      <Guid>{0BC5DCB4-2B0A-11D3-B5E7-000629B0638F}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="AutWinMetricsTypeLibrary">
+      <Guid>{073689A1-5A7A-11D0-9108-0004AC3617E1}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="AutXferTypeLibrary">
+      <Guid>{4FBB4050-7BA7-11D0-9112-0004AC3617E1}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -34,4 +34,11 @@
         newHdScan,
         checkHdAfterItemScan
     }
+
+    public enum HdResult
+    {
+        differentLine,
+        hdUnknown,
+        hdCorrect
+    }
 }
