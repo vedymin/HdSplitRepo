@@ -8,7 +8,7 @@ using HdSplit.Models;
 namespace HdSplit.ViewModels
 {
     [Export(typeof(LoginViewModel))]
-    public class LoginViewModel : Screen
+    public class LoginViewModel : Screen, IHandle<LoginConfirmedEvent>
     {
         private readonly IEventAggregator _events;
 
@@ -40,10 +40,21 @@ namespace HdSplit.ViewModels
         public LoginViewModel(IEventAggregator events)
         {
             _events = events;
+            events.Subscribe(this);
             ReflexTerminalModel reflex = new ReflexTerminalModel();
         }
 
         public bool ClosedByX = true;
+
+        public void Handle(LoginConfirmedEvent message)
+        {
+            if (message.LoginConfirmed)
+            {
+                ClosedByX = false;
+                TryClose(true);
+                ClosedByX = true;
+            }
+        }
 
         public void OkButton()
         {
@@ -62,6 +73,11 @@ namespace HdSplit.ViewModels
                 Application.Current.Shutdown();
                 
             }
+        }
+
+        public void Handle(LoginEvent message)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

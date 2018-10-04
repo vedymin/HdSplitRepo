@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace HdSplit.ViewModels
+namespace HdSplit.Framework
 {
     public class LineToHeaderConverter : IValueConverter
     {

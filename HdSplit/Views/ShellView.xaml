@@ -6,8 +6,9 @@
         xmlns:cal="http://www.caliburnproject.org"
         xmlns:viewModels="clr-namespace:HdSplit.ViewModels"
         xmlns:views="clr-namespace:HdSplit.Views"
+        xmlns:framework="clr-namespace:HdSplit.Framework"
         mc:Ignorable="d" FontSize="18"
-        cal:Message.Attach="[Event Loaded] = [Action Loaded($eventArgs)]"
+        cal:Message.Attach="[Event Loaded] = [Action Loaded($eventArgs)];[Event Closing] = [Action OnClose($eventArgs)]"
         Title="HD Split/Check" Height="800" Width="1200" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <Style TargetType="DataGridCell">
@@ -16,7 +17,7 @@
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
-        <viewModels:LineToHeaderConverter x:Key="LineToHeaderConverter" />
+        <framework:LineToHeaderConverter x:Key="LineToHeaderConverter" />
     </Window.Resources>
 
 

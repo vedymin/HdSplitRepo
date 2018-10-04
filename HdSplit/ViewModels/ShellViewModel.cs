@@ -149,8 +149,8 @@ namespace HdSplit.ViewModels {
         public LoginViewModel LoginViewModel { get; private set; }
         public IWindowManager WindowManager { get; private set; }
         public ReflexTerminalModel Reflex { get; set; }
-
-
+        private readonly IEventAggregator _events;
+        public int IndexOfIpgToMinusOne;
 
         [ImportingConstructor]
         public ShellViewModel(HdDataGridViewModel hdDataGridModel, LoginViewModel loginViewModel, IWindowManager windowManager, IEventAggregator events)
@@ -160,6 +160,7 @@ namespace HdSplit.ViewModels {
             WindowManager = windowManager;
             HdDataGridModel = hdDataGridModel;
 
+            _events = events;
             events.Subscribe(this);
 
             //reflex.OpenReflexTerminal();
@@ -245,17 +246,14 @@ namespace HdSplit.ViewModels {
                                 ItemNotFound = false;
                                 Ipg.Quantity--;
                                 IpgToCreate = Ipg;
-                                //Hds.Add(new HdModel(false){HdNumber = "test"});
+                                IndexOfIpgToMinusOne = HdDataGridModel.CountedHd.ListOfIpgs.IndexOf(Ipg);
                                 HdDataGridModel.CountedHd.ListOfIpgs.Refresh();
                                 if (Ipg.Quantity == 0) {
                                     HdDataGridModel.CountedHd.ListOfIpgs.RemoveAt (HdDataGridModel.CountedHd.ListOfIpgs.IndexOf (Ipg));
                                 }
+
                                 ScanningState = States.newHdScan;
                                 InformationText = $"Scan HD with Line {IpgToCreate.Line}.";
-                                //if (HdDataGridModel.CountedHd.ListOfIpgs.Count == 0)
-                                //{
-                                //    Restart();
-                                //}
                                 return;
                             }
 
@@ -280,6 +278,7 @@ namespace HdSplit.ViewModels {
 
                     if (SearchForHd(ScannedBarcode))
                     {
+
                         ScanningState = States.itemScan;
                         InformationText = "Scan item.";
                         ScannedBarcode = string.Empty;
@@ -337,6 +336,8 @@ namespace HdSplit.ViewModels {
                         {
                             if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
                             {
+                                
+                                //HdDataGridModel.CountedHd.ListOfIpgs[IndexOfIpgToMinusOne].Quantity--;
                                 Ipg.Quantity++;
                                 ItemFounded = true;
                                 return true;
@@ -415,7 +416,6 @@ namespace HdSplit.ViewModels {
             //Loaded();
         }
 
-
         private async Task Notify(string _message, Brush color) {
             
 
@@ -444,8 +444,6 @@ namespace HdSplit.ViewModels {
                 Background = new SolidColorBrush (Colors.Transparent);
             }
         }
-        // End of information label functions.
-
 
         // For now not used anywhere. Can be used maybe for changing ScanHD function (instead of foreach about all property one by one).
         public void CopyOriginalHdToCountedHd()
@@ -573,10 +571,16 @@ namespace HdSplit.ViewModels {
             Reflex.Password = message.Password;
             if (Reflex.TryToLogin())
             {
-                MessageBox.Show("Logged in!");
-
+                //MessageBox.Show("Logged in!");
+                _events.PublishOnUIThread(new LoginConfirmedEvent(true));
             }
             //Reflex.CloseReflexTerminal();
+        }
+
+        public void OnClose(KeyEventArgs keyArgs)
+        {
+            Reflex.CloseReflexTerminal();
+            Application.Current.Shutdown();
         }
     }
 }

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:HdSplit.ViewModels"
+             xmlns:framework="clr-namespace:HdSplit.Framework"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
@@ -14,7 +15,7 @@
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
-        <viewModels:LineConverter x:Key="LineConverter" />
+        <framework:LineConverter x:Key="LineConverter" />
     </UserControl.Resources>
 
     <DataGrid x:Name="MyData" FontSize="20"
@@ -23,6 +24,11 @@
               HorizontalGridLinesBrush="#FFC7C7C7"
               AutoGenerateColumns="False"
               ItemsSource="{Binding Path=ListOfIpgs, Mode=TwoWay}">
+        <DataGrid.RowStyle>
+            <Style TargetType="DataGridRow">
+                <Setter Property="Background" Value="{Binding Highlight}"/>
+            </Style>
+        </DataGrid.RowStyle>
         <DataGrid.Columns>
             <DataGridTextColumn Header="Article" Binding="{Binding Item}" Width="*"/>
             <DataGridTextColumn Header="Line" Binding="{Binding Line, Converter={StaticResource LineConverter}}" Width="*"/>

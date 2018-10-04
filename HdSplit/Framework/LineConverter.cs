@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace HdSplit.ViewModels
+namespace HdSplit.Framework
 {
     public class LineConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {

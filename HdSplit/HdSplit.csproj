@@ -96,6 +96,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Framework\LoginConfirmedEvent.cs" />
     <Compile Include="Framework\LoginEvent.cs" />
     <Compile Include="Framework\PasswordBoxAssistant.cs" />
     <Compile Include="Models\EnumsModel.cs" />
@@ -105,8 +106,8 @@
     <Compile Include="Models\ReflexTerminalModel.cs" />
     <Compile Include="Models\Sounds.cs" />
     <Compile Include="ViewModels\HdDataGridViewModel.cs" />
-    <Compile Include="ViewModels\LineConverter.cs" />
-    <Compile Include="ViewModels\LineToHeaderConverter.cs" />
+    <Compile Include="Framework\LineConverter.cs" />
+    <Compile Include="Framework\LineToHeaderConverter.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />
     <Compile Include="Views\HdDataGridView.xaml.cs">
