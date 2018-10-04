@@ -5,7 +5,7 @@ namespace HdSplit.Models {
 
         public IpgModel()
         {
-            SolidColorBrush Highlight = new SolidColorBrush(Colors.Transparent);
+            Highlight = "White";
         }
 
         public string Item { get; set; }
@@ -13,6 +13,6 @@ namespace HdSplit.Models {
         public int Quantity { get; set; }
         public string Grade { get; set; }
         public string UpcCode { get; set; }
-        public Brush Highlight { get; set; }
+        public string Highlight { get; set; }
     }
 }

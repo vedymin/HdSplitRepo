@@ -244,13 +244,14 @@ namespace HdSplit.ViewModels {
                             if (Ipg.Item == ScannedBarcode || Ipg.UpcCode == ScannedBarcode) {
                                 
                                 ItemNotFound = false;
-                                Ipg.Quantity--;
+                                //Ipg.Quantity--;
                                 IpgToCreate = Ipg;
                                 IndexOfIpgToMinusOne = HdDataGridModel.CountedHd.ListOfIpgs.IndexOf(Ipg);
+                                Ipg.Highlight = "LightGreen";
                                 HdDataGridModel.CountedHd.ListOfIpgs.Refresh();
-                                if (Ipg.Quantity == 0) {
-                                    HdDataGridModel.CountedHd.ListOfIpgs.RemoveAt (HdDataGridModel.CountedHd.ListOfIpgs.IndexOf (Ipg));
-                                }
+                                //if (Ipg.Quantity == 0) {
+                                //    HdDataGridModel.CountedHd.ListOfIpgs.RemoveAt (HdDataGridModel.CountedHd.ListOfIpgs.IndexOf (Ipg));
+                                //}
 
                                 ScanningState = States.newHdScan;
                                 InformationText = $"Scan HD with Line {IpgToCreate.Line}.";
@@ -278,7 +279,7 @@ namespace HdSplit.ViewModels {
 
                     if (SearchForHd(ScannedBarcode))
                     {
-
+                        QuantityMinusOne();
                         ScanningState = States.itemScan;
                         InformationText = "Scan item.";
                         ScannedBarcode = string.Empty;
@@ -337,7 +338,6 @@ namespace HdSplit.ViewModels {
                             if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
                             {
                                 
-                                //HdDataGridModel.CountedHd.ListOfIpgs[IndexOfIpgToMinusOne].Quantity--;
                                 Ipg.Quantity++;
                                 ItemFounded = true;
                                 return true;
@@ -375,7 +375,7 @@ namespace HdSplit.ViewModels {
                     });
 
                     AddIpgToExistingHd(Hds.Count - 1);
-
+                    QuantityMinusOne();
                     ScanningState = States.itemScan;
                     InformationText = "Scan item.";
                     ScannedBarcode = string.Empty;
@@ -393,6 +393,19 @@ namespace HdSplit.ViewModels {
             }
 
             return false;
+        }
+
+        private void QuantityMinusOne()
+        {
+            var TempIpg = HdDataGridModel.CountedHd.ListOfIpgs[IndexOfIpgToMinusOne];
+            TempIpg.Quantity--;
+            
+            if (TempIpg.Quantity == 0)
+            {
+                HdDataGridModel.CountedHd.ListOfIpgs.RemoveAt(IndexOfIpgToMinusOne);
+            }
+            TempIpg.Highlight = "White";
+            HdDataGridModel.CountedHd.ListOfIpgs.Refresh();
         }
 
         public void Restart()

@@ -19,7 +19,7 @@
     </UserControl.Resources>
 
     <DataGrid x:Name="MyData" FontSize="20"
-              AlternatingRowBackground="LightBlue" AlternationCount="2"
+              
               CanUserAddRows="False" 
               HorizontalGridLinesBrush="#FFC7C7C7"
               AutoGenerateColumns="False"
