@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
+using System.Dynamic;
 using System.Linq;
 using System.Windows;
 using Caliburn.Micro;
@@ -17,8 +18,8 @@ namespace HdSplit
         }
 
         protected override void OnStartup(object sender, StartupEventArgs e) {
-            DisplayRootViewFor<ShellViewModel> ();
 
+            DisplayRootViewFor<ShellViewModel> ();
         }
 
         private CompositionContainer container;
@@ -48,5 +49,6 @@ namespace HdSplit
 
             throw new Exception(string.Format("Could not locate any instances of contract {0}.", contract));
         }
+
     }
 }

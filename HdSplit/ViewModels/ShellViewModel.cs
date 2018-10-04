@@ -1,18 +1,21 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Caliburn.Micro;
+using HdSplit.Framework;
 using HdSplit.Models;
 
 namespace HdSplit.ViewModels {
 
     [Export(typeof(ShellViewModel))]
-    public class ShellViewModel : PropertyChangedBase
+    public class ShellViewModel : PropertyChangedBase, IHandle<LoginEvent>
     {
         // For some reason needed for information label.
         private Thread NotifyAboutIncorrectHdAsyncThread = null;
@@ -122,6 +125,18 @@ namespace HdSplit.ViewModels {
             }
         }
 
+        private string _login;
+        public string Login {
+            get {
+                return _login;
+            }
+
+            set {
+                _login = value;
+                NotifyOfPropertyChange(() => Login);
+            }
+        }
+
         public bool ErrorLabelShowRunning { get; set; }
         public bool CanScanItemAsync
         {
@@ -131,26 +146,36 @@ namespace HdSplit.ViewModels {
 
         public IpgModel IpgToCreate { get; set; }
         public HdDataGridViewModel HdDataGridModel { get; private set; }
+        public LoginViewModel LoginViewModel { get; private set; }
+        public IWindowManager WindowManager { get; private set; }
+        public ReflexTerminalModel Reflex { get; set; }
+
+
 
         [ImportingConstructor]
-        public ShellViewModel(HdDataGridViewModel hdDataGridModel)
+        public ShellViewModel(HdDataGridViewModel hdDataGridModel, LoginViewModel loginViewModel, IWindowManager windowManager, IEventAggregator events)
         {
+
+            LoginViewModel = loginViewModel;
+            WindowManager = windowManager;
+            HdDataGridModel = hdDataGridModel;
+
+            events.Subscribe(this);
+
+            //reflex.OpenReflexTerminal();
+
             InformationText = "Scan HD to start splitting";
             ErrorLabelShowRunning = false;
             HdTaskIsRunning = false;
-            HdDataGridModel = hdDataGridModel;
+            
             Hds = new BindableCollection<HdModel>();
             SelectedTab = 0;
-            RefreshTerminalSessionNames();
+            Reflex = new ReflexTerminalModel();
+            Reflex.OpenReflexTerminal();
+            //RefreshTerminalSessionNames();
+            //Loaded();
         }
 
-        public void RefreshTerminalSessionNames()
-        {
-            var reflexTerminal = new ReflexTerminal();
-            SessionNames = reflexTerminal.GetAllConnections();
-            //SelecetedSession = SessionNames[0];
-            InformationText = reflexTerminal.CheckIfConnectionIsReady(SelecetedSession).ToString();
-        }
 
         /// <summary>
         /// Reaction to scan button click or to press enter inside scanning box.
@@ -371,6 +396,8 @@ namespace HdSplit.ViewModels {
 
         public void Restart()
         {
+            
+
             HdDataGridModel.CountedHd = null;
             HdDataGridModel.CountedHd = new HdModel(false);
             HdDataGridModel.OriginalHd = null;
@@ -383,7 +410,9 @@ namespace HdSplit.ViewModels {
             Background = new SolidColorBrush(Colors.Transparent);
             HdTaskIsRunning = false;
             SelectedTab = 0;
-            RefreshTerminalSessionNames();
+            
+            //RefreshTerminalSessionNames();
+            //Loaded();
         }
 
 
@@ -533,6 +562,21 @@ namespace HdSplit.ViewModels {
             HdDataGridModel.CountedHd.ListOfIpgs.Refresh ();
         }
 
-       
+        public void Loaded(KeyEventArgs keyArgs)
+        {
+            WindowManager.ShowDialog(LoginViewModel);
+        }
+
+        public void Handle(LoginEvent message)
+        {
+            Reflex.Login = message.Login;
+            Reflex.Password = message.Password;
+            if (Reflex.TryToLogin())
+            {
+                MessageBox.Show("Logged in!");
+
+            }
+            //Reflex.CloseReflexTerminal();
+        }
     }
 }

@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{1793A30E-31DC-4F20-BA43-DE5D64E52F15}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <RootNamespace>HdSplit</RootNamespace>
     <AssemblyName>SplitHD</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
@@ -73,6 +73,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -95,18 +96,24 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Framework\LoginEvent.cs" />
+    <Compile Include="Framework\PasswordBoxAssistant.cs" />
     <Compile Include="Models\EnumsModel.cs" />
     <Compile Include="Models\HdModel.cs" />
     <Compile Include="Models\IpgModel.cs" />
     <Compile Include="Models\ReflexConnectionModel.cs" />
-    <Compile Include="Models\ReflexTerminal.cs" />
+    <Compile Include="Models\ReflexTerminalModel.cs" />
     <Compile Include="Models\Sounds.cs" />
     <Compile Include="ViewModels\HdDataGridViewModel.cs" />
     <Compile Include="ViewModels\LineConverter.cs" />
     <Compile Include="ViewModels\LineToHeaderConverter.cs" />
+    <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />
     <Compile Include="Views\HdDataGridView.xaml.cs">
       <DependentUpon>HdDataGridView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\LoginView.xaml.cs">
+      <DependentUpon>LoginView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ShellView.xaml.cs">
       <DependentUpon>ShellView.xaml</DependentUpon>
@@ -158,6 +165,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\LoginView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\ShellView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -167,6 +178,9 @@
     <Resource Include="xpo_icon_XKt_icon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\Reflex.WS">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <None Include="Resources\scan.wav" />
   </ItemGroup>
   <ItemGroup>
@@ -269,6 +283,11 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\ibmIcon.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
