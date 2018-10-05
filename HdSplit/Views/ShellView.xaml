@@ -46,7 +46,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="0.2*"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="0.2*"/>
+                <ColumnDefinition Width="0.5*"/>
             </Grid.ColumnDefinitions>
             <Label FontSize="30" Grid.Column="0" 
                    HorizontalContentAlignment="Left" 
@@ -57,11 +57,10 @@
                    VerticalAlignment="Center">222000000000927370</TextBlock>
             <Label FontSize="30" Grid.Column="3" 
                    HorizontalContentAlignment="Right" 
-                   VerticalContentAlignment="Center">Reflex Session:</Label>
-            <ComboBox x:Name="Sesions" Grid.Column="4"
-                      Margin="20,20,0,20"
-                      ItemsSource="{Binding SessionNames}"
-                      SelectedItem="{Binding SelecetedSession}"></ComboBox>
+                   VerticalContentAlignment="Center">Reflex User:</Label>
+            <Label FontSize="30" Grid.Column="4" 
+                   VerticalContentAlignment="Center"
+                   Content="{Binding Login}"></Label>
         </Grid>
 
         <!-- Tab control -->

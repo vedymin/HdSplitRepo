@@ -19,11 +19,40 @@
     </UserControl.Resources>
 
     <DataGrid x:Name="MyData" FontSize="20"
-              
+              CanUserDeleteRows="False"
+              CanUserReorderColumns="False"
+              CanUserResizeColumns="False"
+              CanUserResizeRows="False"
               CanUserAddRows="False" 
+              IsReadOnly="False"
+              
               HorizontalGridLinesBrush="#FFC7C7C7"
               AutoGenerateColumns="False"
               ItemsSource="{Binding Path=ListOfIpgs, Mode=TwoWay}">
+        <DataGrid.CellStyle>
+
+            <Style TargetType="{x:Type DataGridCell}">
+                <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Style.Triggers>
+                    <Trigger Property="DataGridCell.IsSelected" Value="True">
+                        <Setter Property="BorderBrush">
+                            <Setter.Value>
+                                <SolidColorBrush Color="Transparent"/>
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="Foreground"
+                                Value="{DynamicResource
+                                   {x:Static SystemColors.ControlTextBrushKey}}"/>
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="Transparent"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </DataGrid.CellStyle>
         <DataGrid.RowStyle>
             <Style TargetType="DataGridRow">
                 <Setter Property="Background" Value="{Binding Highlight}"/>

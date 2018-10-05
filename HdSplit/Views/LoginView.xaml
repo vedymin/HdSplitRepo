@@ -10,31 +10,29 @@
         cal:Message.Attach="[Event Closing] = [Action OnClose($eventArgs)]"
         Title="IBM i Signon" Height="180" Width="400"
         Background="WhiteSmoke">
-    <Grid>
+    <Grid FocusManager.FocusedElement="{Binding ElementName=Login}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="20"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="3*"/>
-            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="20" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="0.2*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="5"/>
+            <RowDefinition Height="5" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="0.2*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="5" />
         </Grid.RowDefinitions>
 
         <Image  Grid.Row="1" Grid.RowSpan="2" Grid.Column="1"
                 Source="/Resources/ibmIcon.png"
-                
-                Margin="10,10,10,20" 
-                ></Image>
 
-       
+                Margin="10,10,10,20"
+                ></Image>
 
         <Label Grid.Row="1" Grid.Column="2"
                VerticalContentAlignment="Center">Signon to:</Label>
@@ -42,7 +40,7 @@
         <TextBox Grid.Row="1" Grid.Column="3" Margin="5"
                  IsEnabled="False" VerticalContentAlignment="Center"
                  >10.52.1.100</TextBox>
-            
+
         <Label Grid.Row="2" Grid.Column="2"
                VerticalContentAlignment="Center">User ID:</Label>
 
@@ -60,15 +58,14 @@
 
         <Grid Grid.Row="5" Grid.Column="3">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="0.5*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="0.5*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Button x:Name="OkButton"  Grid.Row="5" Grid.Column="1" Margin="5">Ok</Button>
+            <Button IsDefault="True" x:Name="OkButton"  Grid.Row="5" Grid.Column="1" Margin="5">Ok</Button>
             <Button Grid.Row="5" Grid.Column="2" Margin="5"
                     cal:Message.Attach="[Event Click] = [Action OnClose($eventArgs)]">Cancel</Button>
-
         </Grid>
     </Grid>
 </Window>
