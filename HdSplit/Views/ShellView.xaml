@@ -79,7 +79,7 @@
             <TextBlock x:Name="HdNumber"
                    FontSize="20" Grid.Column="1"
                    HorizontalAlignment="Left"
-                   VerticalAlignment="Center">222000000000927370</TextBlock>
+                   VerticalAlignment="Center"></TextBlock>
         </Grid>
 
         <!-- Tab control -->

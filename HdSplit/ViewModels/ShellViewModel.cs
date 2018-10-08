@@ -58,6 +58,7 @@ namespace HdSplit.ViewModels
 			HdDataGridModel = hdDataGridModel;
 			_events = events;
 			events.Subscribe(this);
+
 			InformationText = "Scan HD to start splitting";
 			ErrorLabelShowRunning = false;
 			HdTaskIsRunning = false;
@@ -597,7 +598,6 @@ namespace HdSplit.ViewModels
 						{
 							HdForBreakdown = _hd;
 							AddIpgToExistingHd(i);
-							//StartSTATask(ReflexIpgBreakdownToOldHd);
 							Reflex.ReflexIpgBreakdownToOldHd(HdForBreakdown);
 							return true;
 						}
