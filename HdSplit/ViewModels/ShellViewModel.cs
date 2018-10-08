@@ -33,6 +33,8 @@ namespace HdSplit.ViewModels
 
 		private string _login;
 
+		private string _location;
+
 		private string _previousInformationText;
 
 		private string _scannedBarcode;
@@ -65,6 +67,8 @@ namespace HdSplit.ViewModels
 			Reflex.OpenReflexTerminal();
 		}
 
+		public string ScannedItem { get; set; }
+
 		public Brush Background {
 			get {
 				return _background;
@@ -84,11 +88,23 @@ namespace HdSplit.ViewModels
 
 		public HdDataGridViewModel HdDataGridModel { get; private set; }
 
+		//Cut zeros
 		public string HdNumber {
 			get { return _hdNumber; }
 			set {
 				_hdNumber = value;
 				NotifyOfPropertyChange(() => HdDataGridModel.OriginalHd.HdNumber);
+				NotifyOfPropertyChange(() => CanConfirm);
+			}
+		}
+
+		public string HdForBreakdown { get; set; }
+
+		public string Location {
+			get { return _location; }
+			set {
+				_location = value;
+				NotifyOfPropertyChange(() => Location);
 			}
 		}
 
@@ -202,6 +218,25 @@ namespace HdSplit.ViewModels
 			}
 		}
 
+		public bool CanConfirm {
+			get { return !String.IsNullOrEmpty(HdNumber); }
+		}
+
+		public void Confirm()
+		{
+			MessageBoxResult result = MessageBox.Show("Are You sure that HD is empty?", "Confirm HD", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+			switch (result)
+			{
+				case MessageBoxResult.Yes:
+					Reflex.ConfirmHd();
+					Restart();
+					break;
+
+				case MessageBoxResult.No:
+					break;
+			}
+		}
+
 		/// <summary>
 		/// Download UPC barcodes for items
 		/// </summary>
@@ -241,7 +276,9 @@ namespace HdSplit.ViewModels
 			{
 				//MessageBox.Show("Logged in!");
 				_events.PublishOnUIThread(new LoginConfirmedEvent(true));
-				StartSTATask();
+				//StartSTATask(ReflexLoginAndSetView);
+				Reflex.GoFromLoginToSelectIpgByLocationAsync();
+				Reflex.SetCorrectView();
 			}
 			//Reflex.CloseReflexTerminal();
 		}
@@ -380,34 +417,36 @@ namespace HdSplit.ViewModels
 
 					// Hd is validated, so here we are going to download all information asynchronized.
 					await Task.Factory.StartNew(() =>
-				   {
-					   // Save scanned barcoded so we can use it later.
-					   HdDataGridModel.OriginalHd.HdNumber = ScannedBarcode;
-					   HdDataGridModel.CountedHd.HdNumber = ScannedBarcode;
-					   HdDataGridModel.CountedHd.TabHeader = ScannedBarcode;
-					   HdTaskIsRunning = true;
-					   // IF is checking if HD is unknown. IF yes then ScanHd return false, and Information label is updated.
-					   if (!ScanHd())
-					   {
-						   Notify("Hd Unknown", Background = new SolidColorBrush(Colors.Red));
-						   ScannedBarcode = string.Empty;
-						   return;
-					   }
+					{
+						// Save scanned barcoded so we can use it later.
+						HdDataGridModel.OriginalHd.HdNumber = ScannedBarcode;
+						HdDataGridModel.CountedHd.HdNumber = ScannedBarcode;
+						HdDataGridModel.CountedHd.TabHeader = ScannedBarcode;
+						HdTaskIsRunning = true;
+						// IF is checking if HD is unknown. IF yes then ScanHd return false, and Information label is updated.
+						if (!ScanHd())
+						{
+							Notify("Hd Unknown", Background = new SolidColorBrush(Colors.Red));
+							ScannedBarcode = string.Empty;
+							return;
+						}
 
-					   // HdNumber is binded to label on top of the program where you can see which HD user scanned.
-					   HdNumber = HdDataGridModel.OriginalHd.HdNumber;
+						// HdNumber is binded to label on top of the program where you can see which HD user scanned.
+						HdNumber = HdDataGridModel.OriginalHd.HdNumber;
 
-					   // Clearing scanning box
-					   ScannedBarcode = string.Empty;
+						// Clearing scanning box
+						ScannedBarcode = string.Empty;
 
-					   // As it says...
-					   DownloadUpc();
-					   ScanningState = States.itemScan;
-					   InformationText = "Scan item.";
-					   HdTaskIsRunning = false;
-					   Hds.Add(HdDataGridModel.CountedHd);
-					   SelectedTab = 0;
-				   });
+						// As it says...
+						StartSTATask(ReflexScanHd);
+						//Reflex.HdScanned(HdNumber);
+						DownloadUpc();
+						ScanningState = States.itemScan;
+						InformationText = "Scan item.";
+						HdTaskIsRunning = false;
+						Hds.Add(HdDataGridModel.CountedHd);
+						SelectedTab = 0;
+					});
 					Console.WriteLine("Jestem już poza DownloadUPC");
 				}
 				else if (ScanningState == States.itemScan)
@@ -419,16 +458,14 @@ namespace HdSplit.ViewModels
 						{
 							if (Ipg.Item == ScannedBarcode || Ipg.UpcCode == ScannedBarcode)
 							{
+								ScannedItem = ScannedBarcode;
+								//StartSTATask(ReflexScanItem);
+								Reflex.ItemScanned(ScannedItem);
 								ItemNotFound = false;
-								//Ipg.Quantity--;
 								IpgToCreate = Ipg;
 								IndexOfIpgToMinusOne = HdDataGridModel.CountedHd.ListOfIpgs.IndexOf(Ipg);
 								Ipg.Highlight = "LightGreen";
 								HdDataGridModel.CountedHd.ListOfIpgs.Refresh();
-								//if (Ipg.Quantity == 0) {
-								//    HdDataGridModel.CountedHd.ListOfIpgs.RemoveAt (HdDataGridModel.CountedHd.ListOfIpgs.IndexOf (Ipg));
-								//}
-
 								ScanningState = States.newHdScan;
 								InformationText = $"Scan HD with Line {IpgToCreate.Line}.";
 								return;
@@ -449,14 +486,17 @@ namespace HdSplit.ViewModels
 				}
 				else if (ScanningState == States.newHdScan)
 				{
+					if (string.IsNullOrEmpty(Location))
+					{
+						MessageBox.Show("Location cannot be empty.");
+						return;
+					}
 					if (ValidateHd()) return;
 
 					if (SearchForHd(ScannedBarcode))
 					{
 						QuantityMinusOne();
-						ScanningState = States.itemScan;
-						InformationText = "Scan item.";
-						ScannedBarcode = string.Empty;
+
 						return;
 					}
 				}
@@ -523,6 +563,10 @@ namespace HdSplit.ViewModels
 			}
 			TempIpg.Highlight = "White";
 			HdDataGridModel.CountedHd.ListOfIpgs.Refresh();
+
+			ScanningState = States.itemScan;
+			InformationText = "Scan item.";
+			ScannedBarcode = string.Empty;
 		}
 
 		private bool SearchForHd(string _hd)
@@ -542,13 +586,19 @@ namespace HdSplit.ViewModels
 							{
 								Ipg.Quantity++;
 								ItemFounded = true;
+								HdForBreakdown = _hd;
+								//StartSTATask(ReflexIpgBreakdownToOldHd);
+								Reflex.ReflexIpgBreakdownToOldHd(HdForBreakdown);
 								return true;
 							}
 						}
 
 						if (!ItemFounded)
 						{
+							HdForBreakdown = _hd;
 							AddIpgToExistingHd(i);
+							//StartSTATask(ReflexIpgBreakdownToOldHd);
+							Reflex.ReflexIpgBreakdownToOldHd(HdForBreakdown);
 							return true;
 						}
 					}
@@ -566,6 +616,21 @@ namespace HdSplit.ViewModels
 				var result = ScanHdToCheckLines(_hd);
 				if (result == HdResult.hdCorrect || result == HdResult.hdUnknown)
 				{
+					string IpgBreakdownResult = null;
+					if (result == HdResult.hdCorrect)
+					{
+						Reflex.ReflexIpgBreakdownToOldHd(_hd);
+					}
+					else
+					{
+						IpgBreakdownResult = Reflex.ReflexIpgBreakdownToNewHd(_hd, Location);
+					}
+					if (IpgBreakdownResult != null)
+					{
+						MessageBox.Show(IpgBreakdownResult);
+						ScannedBarcode = String.Empty;
+						return false;
+					}
 					Hds.Add(new HdModel(false)
 					{
 						Grade = IpgToCreate.Grade,
@@ -575,11 +640,11 @@ namespace HdSplit.ViewModels
 						TabHeader = $"{ScannedBarcode} - {IpgToCreate.Line.ToString()}"
 					});
 
+					//HdForBreakdown = _hd;
 					AddIpgToExistingHd(Hds.Count - 1);
+
+					//StartSTATask(ReflexIpgBreakdownToNewHd);
 					QuantityMinusOne();
-					ScanningState = States.itemScan;
-					InformationText = "Scan item.";
-					ScannedBarcode = string.Empty;
 					return false;
 				}
 				else if (result == HdResult.differentLine)
@@ -595,18 +660,14 @@ namespace HdSplit.ViewModels
 			return false;
 		}
 
-		private Task StartSTATask()
+		private static Task StartSTATask(System.Action func)
 		{
 			TaskCompletionSource<object> source = new TaskCompletionSource<object>();
 			Thread thread = new Thread(() =>
 			{
 				try
 				{
-					HdTaskIsRunning = true;
-					ReflexTerminalModel ReflexAsync = new ReflexTerminalModel();
-					ReflexAsync.GoFromLoginToSelectIpgByLocationAsync();
-					ReflexAsync.SetCorrectView();
-					HdTaskIsRunning = false;
+					func();
 					source.SetResult(null);
 				}
 				catch (Exception ex)
@@ -617,6 +678,52 @@ namespace HdSplit.ViewModels
 			thread.SetApartmentState(ApartmentState.STA);
 			thread.Start();
 			return source.Task;
+		}
+
+		private void ReflexLoginAndSetView()
+		{
+			HdTaskIsRunning = true;
+			ReflexTerminalModel ReflexAsync = new ReflexTerminalModel();
+			ReflexAsync.GoFromLoginToSelectIpgByLocationAsync();
+			ReflexAsync.SetCorrectView();
+			ReflexAsync = null;
+			HdTaskIsRunning = false;
+		}
+
+		public void ReflexScanHd()
+		{
+			HdTaskIsRunning = true;
+			ReflexTerminalModel ReflexTest = new ReflexTerminalModel();
+			ReflexTest.HdScanned(HdNumber);
+			ReflexTest = null;
+			HdTaskIsRunning = false;
+		}
+
+		public void ReflexScanItem()
+		{
+			HdTaskIsRunning = true;
+			ReflexTerminalModel ReflexTest = new ReflexTerminalModel();
+			ReflexTest.ItemScanned(ScannedItem);
+			ReflexTest = null;
+			HdTaskIsRunning = false;
+		}
+
+		public void ReflexIpgBreakdownToNewHd()
+		{
+			HdTaskIsRunning = true;
+			ReflexTerminalModel ReflexTest = new ReflexTerminalModel();
+			ReflexTest.ReflexIpgBreakdownToNewHd(HdForBreakdown, Location);
+			ReflexTest = null;
+			HdTaskIsRunning = false;
+		}
+
+		public void ReflexIpgBreakdownToOldHd()
+		{
+			HdTaskIsRunning = true;
+			ReflexTerminalModel ReflexTest = new ReflexTerminalModel();
+			ReflexTest.ReflexIpgBreakdownToOldHd(HdForBreakdown);
+			ReflexTest = null;
+			HdTaskIsRunning = false;
 		}
 	}
 }

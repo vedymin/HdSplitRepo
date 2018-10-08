@@ -15,9 +15,15 @@ namespace HdSplit.Models
 		public AutOIAClass operatorInfoArea = new AutOIAClass();
 		public AutPSClass presentationSpace = new AutPSClass();
 
+		public ReflexTerminalModel()
+		{
+			SetConnectionForOIAandPS();
+		}
+
 		public string Login { get; set; }
 		public string Password { get; set; }
 		public const string View = "AA_SPLIT";
+		public const string Prod_Test = "20";
 
 		#region Future functions for general library
 
@@ -110,7 +116,7 @@ namespace HdSplit.Models
 
 			while (sw.Elapsed < maxDuration)
 			{
-				if (operatorInfoArea.InputInhibited != 0 || operatorInfoArea.InputInhibited == InhibitReason.pcNotInhibited)
+				if (operatorInfoArea.InputInhibited == InhibitReason.pcNotInhibited)
 				{
 					operatorInfoArea.WaitForInputReady(null);
 					return;
@@ -203,9 +209,17 @@ namespace HdSplit.Models
 
 		#region SendKeys methods
 
+		public void SendEreaseField(int row, int column)
+		{
+			presentationSpace.SetCursorPos(row, column);
+			WaitForInput();
+			presentationSpace.SendKeys("[eraseeof]");
+		}
+
 		public void SendString(string text, int row, int column)
 		{
 			WaitForInput();
+			presentationSpace.SendKeys("[tab]");
 			presentationSpace.SendKeys(text, row, column);
 			WaitForInput();
 		}
@@ -213,6 +227,7 @@ namespace HdSplit.Models
 		public void SendString(int text, int row, int column)
 		{
 			WaitForInput();
+			presentationSpace.SendKeys("[tab]");
 			presentationSpace.SendKeys(text.ToString(), row, column);
 			WaitForInput();
 		}
@@ -220,7 +235,15 @@ namespace HdSplit.Models
 		public void SendEnter()
 		{
 			WaitForInput();
+			presentationSpace.SendKeys("[tab]");
 			presentationSpace.SendKeys("[enter]");
+			WaitForInput();
+		}
+
+		public void SendPageDown()
+		{
+			WaitForInput();
+			presentationSpace.SendKeys("[pagedn]");
 			WaitForInput();
 		}
 
@@ -232,6 +255,29 @@ namespace HdSplit.Models
 		}
 
 		#endregion SendKeys methods
+
+		public void ConfirmHd()
+		{
+			while (GetText(11, 8, 8) != " ")
+			{
+				MoveToPickBlo();
+			}
+		}
+
+		private void MoveToPickBlo()
+		{
+			SendString(20, 11, 2);
+			SendEnter();
+			SendEreaseField(16, 28);
+			SendString(GetText(15, 28, 34), 16, 28);
+			SendString(2, 17, 51);
+			SendString("n", 18, 34);
+			SendString("n", 20, 34);
+			SendEnter();
+			SendString(1, 13, 6);
+			SendEnter();
+			SendFkey(20);
+		}
 
 		public string GetText(int row, int column, int lastLetterOfTextColumn)
 		{
@@ -252,6 +298,7 @@ namespace HdSplit.Models
 			try
 			{
 				WaitForInput();
+				ClearScreen();
 				SendString(Login, 6, 53);
 				SendString(Password, 7, 53);
 				SendEnter();
@@ -311,7 +358,8 @@ namespace HdSplit.Models
 			SetConnectionForOIAandPS();
 
 			WaitForText("MENUINI");
-			SendString(1, 20, 7);
+			// Production or Test
+			SendString(Prod_Test, 20, 7);
 			SendEnter();
 			SendEnter();
 			SendString(4, 20, 7);
@@ -375,10 +423,71 @@ namespace HdSplit.Models
 			}
 		}
 
-		private void SetConnectionForOIAandPS()
+		public void HdScanned(string hd)
 		{
+			SetConnectionForOIAandPS();
+			SendString(hd, 20, 28);
+			SendEnter();
+		}
+
+		public void ItemScanned(string item)
+		{
+			object searchResultRow = 1;
+			object searchResultColumn = 1;
+
+			if (IsTextOnScreen(item, ref searchResultRow, ref searchResultColumn))
+			{
+				SendString(20, (int)searchResultRow, 2);
+				SendEnter();
+			}
+			else
+			{
+				if (IsTextOnScreen("+"))
+				{
+					SendPageDown();
+					ItemScanned(item);
+				}
+			}
+		}
+
+		public void SetConnectionForOIAandPS()
+		{
+			operatorInfoArea = null;
+			presentationSpace = null;
+			operatorInfoArea = new AutOIAClass();
+			presentationSpace = new AutPSClass();
 			operatorInfoArea.SetConnectionByName("Z");
 			presentationSpace.SetConnectionByName("Z");
+		}
+
+		public string ReflexIpgBreakdownToNewHd(string hd, string location)
+		{
+			SendEreaseField(16, 28);
+			SendString(1, 16, 28);
+			SendString(hd, 17, 34);
+			SendString("y", 18, 34);
+			SendString("            N", 19, 34);
+			SendString(location, 19, 34);
+			SendEnter();
+			if (presentationSpace.GetText(24, 2, 3) == "   ")
+			{
+				SendFkey(20);
+				return null;
+			}
+			else
+			{
+				return presentationSpace.GetText(24, 2, 40);
+			}
+		}
+
+		public void ReflexIpgBreakdownToOldHd(string hd)
+		{
+			SendString(1, 16, 28);
+			SendString(hd, 17, 34);
+			SendString("n", 18, 34);
+			SendString("n", 20, 34);
+			SendEnter();
+			SendFkey(20);
 		}
 	}
 }
