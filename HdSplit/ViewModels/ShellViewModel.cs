@@ -360,7 +360,8 @@ namespace HdSplit.ViewModels
 		}
 
 		/// <summary>
-		/// Reaction to scan button click or to press enter inside scanning box.
+		/// Reaction to scan button click or to press enter
+		/// inside scanning box.
 		/// </summary>
 		/// <param name="keyArgs"></param>
 		/// <returns></returns>
@@ -601,8 +602,11 @@ namespace HdSplit.ViewModels
 			{
 				try
 				{
+					HdTaskIsRunning = true;
 					ReflexTerminalModel ReflexAsync = new ReflexTerminalModel();
 					ReflexAsync.GoFromLoginToSelectIpgByLocationAsync();
+					ReflexAsync.SetCorrectView();
+					HdTaskIsRunning = false;
 					source.SetResult(null);
 				}
 				catch (Exception ex)

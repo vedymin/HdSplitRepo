@@ -59,11 +59,6 @@ namespace HdSplit.ViewModels
 		public void OkButton()
 		{
 			_events.PublishOnUIThread(new LoginEvent(Login, Password));
-
-			//MessageBox.Show("działa");
-			//ClosedByX = false;
-			//TryClose(true);
-			//ClosedByX = true;
 		}
 
 		public void OnClose(KeyEventArgs keyArgs)

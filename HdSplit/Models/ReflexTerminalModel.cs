@@ -17,8 +17,7 @@ namespace HdSplit.Models
 
 		public string Login { get; set; }
 		public string Password { get; set; }
-		public object rowtest = 1;
-		public object coltest = 1;
+		public const string View = "AA_SPLIT";
 
 		#region Future functions for general library
 
@@ -83,19 +82,21 @@ namespace HdSplit.Models
 			return Boolean.Parse(session.GetType().InvokeMember("Ready", System.Reflection.BindingFlags.GetProperty, null, session, null).ToString());
 		}
 
-		public bool WaitForConnectionIsReady(string _sessionName)
+		public void WaitForConnectionIsReady(string _sessionName)
 		{
-			// we'll stop after 10 minutes
 			TimeSpan maxDuration = TimeSpan.FromSeconds(15);
 			Stopwatch sw = Stopwatch.StartNew();
-			bool DoneWithWork = false;
 
-			while (sw.Elapsed < maxDuration && !DoneWithWork)
+			while (sw.Elapsed < maxDuration)
 			{
-				DoneWithWork = (CheckIfConnected(_sessionName)) ? true : false;
+				if (CheckIfConnected(_sessionName))
+				{
+					return;
+				}
 			}
-
-			return true;
+			CloseAppBecauseOfCriticalError("There is problem with connection to Reflex. " +
+										   "Please Check your connection and" +
+										   "run the application again.");
 		}
 
 		#endregion Check and Wait for Connection
@@ -104,12 +105,19 @@ namespace HdSplit.Models
 
 		public void WaitForInput()
 		{
-			while (operatorInfoArea.InputInhibited != 0)
+			TimeSpan maxDuration = TimeSpan.FromSeconds(15);
+			Stopwatch sw = Stopwatch.StartNew();
+
+			while (sw.Elapsed < maxDuration)
 			{
+				if (operatorInfoArea.InputInhibited != 0 || operatorInfoArea.InputInhibited == InhibitReason.pcNotInhibited)
+				{
+					operatorInfoArea.WaitForInputReady(null);
+					return;
+				}
 				presentationSpace.SendKeys("[reset]");
 			}
-
-			operatorInfoArea.WaitForInputReady(null);
+			CloseAppBecauseOfCriticalError("Unexpected error occur while waiting for input. Please run application again.");
 		}
 
 		#endregion Check and Wait for Input
@@ -118,34 +126,77 @@ namespace HdSplit.Models
 
 		public void WaitForText(string text)
 		{
-			while (presentationSpace.SearchText(text) == false)
+			TimeSpan maxDuration = TimeSpan.FromSeconds(15);
+			Stopwatch sw = Stopwatch.StartNew();
+
+			while (sw.Elapsed < maxDuration)
 			{
+				WaitForInput();
+				if (presentationSpace.SearchText(text))
+				{
+					return;
+				}
 			}
+
+			CloseAppBecauseOfCriticalError("Unexpected error occur while waiting for string. Please run application again.");
 		}
 
 		public bool IsTextOnScreen(string text)
 		{
-			return presentationSpace.SearchText(text, PsDir.pcSrchForward, ref rowtest, ref coltest);
+			WaitForInput();
+			return presentationSpace.SearchText(text);
+		}
+
+		public bool IsTextOnScreen(string text, int waitingTime)
+		{
+			TimeSpan maxDuration = TimeSpan.FromSeconds(waitingTime);
+			Stopwatch sw = Stopwatch.StartNew();
+
+			while (sw.Elapsed < maxDuration)
+			{
+				WaitForInput();
+				if (presentationSpace.SearchText(text))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		public bool IsTextOnScreen(string text, ref object row, ref object column)
+		{
+			WaitForInput();
+			return presentationSpace.SearchText(text, PsDir.pcSrchForward, ref row, ref column);
 		}
 
 		#endregion Search and Wait for text on screen
 
 		#region Open/Close Reflex Terminal
 
-		public void CloseReflexTerminal()
-		{
-			connectionManager.StopConnection("Z", "saveprofile=no");
-		}
-
 		public void OpenReflexTerminal()
 		{
 			connectionManager.StartConnection("profile=./Resources/Reflex.ws connname=Z winstate=min");
 
-			if (WaitForConnectionIsReady("Z"))
-			{
-				SetConnectionForOIAandPS();
-				WaitForText("Sign On");
-			}
+			WaitForConnectionIsReady("Z");
+			SetConnectionForOIAandPS();
+			WaitForText("Sign On");
+		}
+
+		public void CloseReflexTerminal()
+		{
+			SendEnter();
+			SendFkey(9);
+			SendString(16, 12, 2);
+			SendEnter();
+			connectionManager.StopConnection("Z", "saveprofile=no");
+		}
+
+		public void CloseAppBecauseOfCriticalError(string message)
+		{
+			MessageBox.Show(message);
+			CloseReflexTerminal();
+			Application.Current.Shutdown();
 		}
 
 		#endregion Open/Close Reflex Terminal
@@ -156,24 +207,28 @@ namespace HdSplit.Models
 		{
 			WaitForInput();
 			presentationSpace.SendKeys(text, row, column);
+			WaitForInput();
 		}
 
 		public void SendString(int text, int row, int column)
 		{
 			WaitForInput();
 			presentationSpace.SendKeys(text.ToString(), row, column);
+			WaitForInput();
 		}
 
 		public void SendEnter()
 		{
 			WaitForInput();
 			presentationSpace.SendKeys("[enter]");
+			WaitForInput();
 		}
 
 		public void SendFkey(int number)
 		{
 			WaitForInput();
 			presentationSpace.SendKeys($"[pf{number.ToString()}]");
+			WaitForInput();
 		}
 
 		#endregion SendKeys methods
@@ -200,7 +255,6 @@ namespace HdSplit.Models
 				SendString(Login, 6, 53);
 				SendString(Password, 7, 53);
 				SendEnter();
-				WaitForInput();
 
 				if (IsTextOnScreen("CPF1107"))
 				{
@@ -249,7 +303,6 @@ namespace HdSplit.Models
 			{
 				Console.WriteLine("Login Failed" + e);
 				throw;
-				return false;
 			}
 		}
 
@@ -269,16 +322,19 @@ namespace HdSplit.Models
 
 		public void SetCorrectView()
 		{
-			WaitForInput();
 			if (IsTextOnScreen("HLGE40"))
 			{
 				SendEnter();
+				WaitForText("HLGE41");
 				if (IsTextOnScreen("SPLIT"))
 				{
+					SendFkey(12);
 					return;
 				}
 				else
 				{
+					object searchResultRow = 1;
+					object searchResultColumn = 1;
 					SendFkey(9);
 					WaitForText("HLVW11");
 					SendFkey(22);
@@ -288,14 +344,35 @@ namespace HdSplit.Models
 						SendEnter();
 						SendFkey(22);
 					}
-					// search
+					WaitForText("HLVW12");
+					if (IsTextOnScreen(View, ref searchResultRow, ref searchResultColumn))
+					{
+						SendString(15, (int)searchResultRow, 2);
+						SendEnter();
+						SendFkey(12);
+					}
+					WaitForText("HLVW11");
+					SendFkey(18);
+					WaitForText("HLVW18");
+					if (IsTextOnScreen(View, ref searchResultRow, ref searchResultColumn))
+					{
+						SendString("1  ", (int)searchResultRow, 4);
+						SendEnter();
+						SendFkey(12);
+					}
+
+					if (IsTextOnScreen("SPLIT"))
+					{
+						SendFkey(12);
+						return;
+					}
+					else
+					{
+						SendFkey(12);
+						SetCorrectView();
+					}
 				}
 			}
-		}
-
-		public void CheckIfViewIsCorrect()
-		{
-			SetConnectionForOIAandPS();
 		}
 
 		private void SetConnectionForOIAandPS()
