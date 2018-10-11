@@ -137,7 +137,7 @@
                      cal:Message.Attach="[Event KeyDown] = [Action ScanItemAsync($eventArgs)]" />
             <Button Grid.Column="1" Margin="10,10,0,10"
                     cal:Message.Attach="[Event Click] = [Action ScanItemAsync($eventArgs)]">Scan</Button>
-            <Button x:Name="Restart" IsEnabled="False" Grid.Column="2" Margin="10,10,0,10">Reset</Button>
+            <Button x:Name="Restart" IsEnabled="True" Grid.Column="2" Margin="10,10,0,10">Reset</Button>
         </Grid>
 
         <Button x:Name="Confirm" Grid.Row="7" Grid.Column="1"
