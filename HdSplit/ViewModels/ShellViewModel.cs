@@ -294,18 +294,29 @@ namespace HdSplit.ViewModels
 			// IF also checking if there is enter pressed.
 			if (keyArgs == null || keyArgs.Key == Key.Enter)
 			{
+				
 				Sounds.PlayScanSound();
+				if (ScannedBarcode == "CONFRIM HD")
+				{
+					Confirm();
+					return;
+				}
 				switch (ScanningState)
 				{
 					case States.firstScanOfHd:
 						// Validation of hd, and also updating info label. Needs to be refactored.
-						if (ValidateHd()) return;
+						if (ValidateHd())
+						{
+							OnFocusRequested("ScannedBarcode");
+							return;
+						}
 
 						// Hd is validated, so here we are going to download all information asynchronized.
 						//await Task.Factory.StartNew(() =>
 						//{
 							if (!ScanNewHdForSplit())
 							{
+								OnFocusRequested("ScannedBarcode");
 								return;
 							}
 						//});
@@ -313,6 +324,7 @@ namespace HdSplit.ViewModels
 						break;
 					case States.itemScan:
 						ItemScan();
+						OnFocusRequested("ScannedBarcode");
 						break;
 					case States.newHdScan:
 						if (string.IsNullOrEmpty(Location))
@@ -325,7 +337,7 @@ namespace HdSplit.ViewModels
 						if (SearchForHd(ScannedBarcode))
 						{
 							QuantityMinusOne();
-
+							OnFocusRequested("ScannedBarcode");
 							return;
 						}
 						break;
@@ -417,18 +429,18 @@ namespace HdSplit.ViewModels
 			{
 				// Tricky way to copy one hd to another. Needs to go thru properties manually.
 				// There is porobably better way with function CopyOriginalHdToCountedHd().
-				foreach (var Ipg in reflexConnection.OriginalHdModel.ListOfIpgs)
-				{
-					if (Ipg.Line == IpgToCreate.Line)
-					{
-						continue;
-					}
-					else
-					{
-						return HdResult.differentLine;
-					}
-				}
-				// We still have some data so return true.
+				//foreach (var Ipg in reflexConnection.OriginalHdModel.ListOfIpgs)
+				//{
+				//	if (Ipg.Line == IpgToCreate.Line)
+				//	{
+				//		continue;
+				//	}
+				//	else
+				//	{
+				//		return HdResult.differentLine;
+				//	}
+				//}
+				//// We still have some data so return true.
 				return HdResult.hdCorrect;
 			}
 			else
@@ -521,34 +533,34 @@ namespace HdSplit.ViewModels
 				if (HdDataGridModel.Hds[i].HdNumber == _hd)
 				{
 					// Check if Line is correct
-					if (HdDataGridModel.Hds[i].Line == IpgToCreate.Line)
+					//if (HdDataGridModel.Hds[i].Line == IpgToCreate.Line)
+					//{
+					foreach (var Ipg in HdDataGridModel.Hds[i].ListOfIpgs)
 					{
-						foreach (var Ipg in HdDataGridModel.Hds[i].ListOfIpgs)
+						if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
 						{
-							if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
-							{
-								Ipg.Quantity++;
-								ItemFounded = true;
-								HdForBreakdown = _hd;
-								ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
-								return true;
-							}
-						}
-
-						if (!ItemFounded)
-						{
+							Ipg.Quantity++;
+							ItemFounded = true;
 							HdForBreakdown = _hd;
-							AddIpgToExistingHd(i);
 							ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
 							return true;
 						}
 					}
-					else
+
+					if (!ItemFounded)
 					{
-						Notify("This HD have wrong LINE!", Brushes.Red);
-						ScannedBarcode = String.Empty;
-						return false;
+						HdForBreakdown = _hd;
+						AddIpgToExistingHd(i);
+						ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
+						return true;
 					}
+					//}
+					//else
+					//{
+					//	Notify("This HD have wrong LINE!", Brushes.Red);
+					//	ScannedBarcode = String.Empty;
+					//	return false;
+					//}
 				}
 			}
 
@@ -564,7 +576,7 @@ namespace HdSplit.ViewModels
 					}
 					else
 					{
-						ZebraModel.Print(IpgToCreate.Line.ToString());
+						//ZebraModel.Print(IpgToCreate.Line.ToString());
 						IpgBreakdownResult = ReflexTerminal.ReflexIpgBreakdownToNewHd(_hd, Location);
 					}
 					if (IpgBreakdownResult != null)

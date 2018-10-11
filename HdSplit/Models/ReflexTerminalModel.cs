@@ -442,6 +442,8 @@ namespace HdSplit.Models
 					WaitForText("HLVW11");
 					SendFkey(18);
 					WaitForText("HLVW18");
+					searchResultColumn = 1;
+					searchResultRow = 1;
 					if (IsTextOnScreen(View, ref searchResultRow, ref searchResultColumn))
 					{
 						SendString("1  ", (int)searchResultRow, 4);

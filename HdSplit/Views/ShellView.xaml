@@ -78,7 +78,7 @@
             <Label FontSize="20" Grid.Column="1"
                    VerticalContentAlignment="Center"
                    Content="{Binding Login}"></Label>
-            <Button x:Name="PrintLabel"
+            <Button x:Name="PrintLabel" IsEnabled="False"
                 Grid.Column="3">Print label with Lane</Button>
         </Grid>
 
@@ -141,6 +141,7 @@
         </Grid>
 
         <Button x:Name="Confirm" Grid.Row="7" Grid.Column="1"
+                IsDefault="True"
                 >Confirm that HD is empty</Button>
     </Grid>
 </Window>
