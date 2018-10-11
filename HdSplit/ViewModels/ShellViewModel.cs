@@ -201,20 +201,26 @@ namespace HdSplit.ViewModels
 			ZebraModel.Print(line);
 		}
 
-		public void Confirm()
+		public void AskForConfirm()
 		{
 			MessageBoxResult result = MessageBox.Show("Are You sure that HD is empty?", "Confirm HD", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
 			switch (result)
 			{
 				case MessageBoxResult.Yes:
-					HdTaskIsRunning = true;
-					ReflexTerminal.ConfirmHd(HdDataGridModel.Hds);
-					Restart();
+					Confirm();
 					break;
 
 				case MessageBoxResult.No:
 					break;
 			}
+		}
+
+		private void Confirm()
+		{
+			HdTaskIsRunning = true;
+			ReflexTerminal.ConfirmHd(HdDataGridModel.Hds);
+			Restart();
+			OnFocusRequested("ScannedBarcode");
 		}
 
 		public void Handle(LoginEvent message)
@@ -276,6 +282,7 @@ namespace HdSplit.ViewModels
 			Background = new SolidColorBrush(Colors.Transparent);
 			HdTaskIsRunning = false;
 			SelectedTab = 0;
+			ReflexTerminal.GoToSelectIpgByLocation();
 
 			//RefreshTerminalSessionNames();
 			//Loaded();
@@ -296,7 +303,7 @@ namespace HdSplit.ViewModels
 			{
 				
 				Sounds.PlayScanSound();
-				if (ScannedBarcode == "CONFRIM HD")
+				if (ScannedBarcode == "CONFIRM HD")
 				{
 					Confirm();
 					return;

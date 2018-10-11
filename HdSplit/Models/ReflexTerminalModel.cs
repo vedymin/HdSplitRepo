@@ -274,6 +274,15 @@ namespace HdSplit.Models
 			WaitForInput();
 		}
 
+		internal void GoToSelectIpgByLocation()
+		{
+			while (!IsTextOnScreen("HLGE40")) 
+			{
+				SendFkey(12);
+				WaitForInput();
+			} 
+		}
+
 		#endregion SendKeys methods
 
 		public void ConfirmHd(BindableCollection<HdModel> hds)
