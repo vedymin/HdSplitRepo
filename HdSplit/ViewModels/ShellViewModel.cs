@@ -3,6 +3,8 @@ using HdSplit.Framework;
 using HdSplit.Models;
 using System;
 using System.ComponentModel.Composition;
+using System.Configuration;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +15,7 @@ using System.Windows.Media;
 namespace HdSplit.ViewModels
 {
 	[Export(typeof(ShellViewModel))]
-	public class ShellViewModel : PropertyChangedBase, IHandle<LoginEvent>, IHandle<CloseOnLoginEvent>
+	public class ShellViewModel : PropertyChangedBase, IHandle<LoginEvent>, IHandle<CloseOnLoginEvent>, IRequestFocus
 	{
 		#region Strings with private fields
 		private string _informationText;
@@ -22,6 +24,18 @@ namespace HdSplit.ViewModels
 			set {
 				_informationText = value;
 				NotifyOfPropertyChange(() => InformationText);
+			}
+		}
+
+		private string _ipAdrress;
+		public string IpAdrress {
+			get { return _ipAdrress; }
+			set {
+				_ipAdrress = value;
+				ZebraModel.ipAddress = value;
+				
+				ConfigurationHelper.SaveValue("PrinterIp", value);
+				NotifyOfPropertyChange(() => IpAdrress);
 			}
 		}
 
@@ -42,6 +56,7 @@ namespace HdSplit.ViewModels
 			get { return _location; }
 			set {
 				_location = value;
+				ConfigurationHelper.SaveValue("Location", value);
 				NotifyOfPropertyChange(() => Location);
 			}
 		}
@@ -87,15 +102,6 @@ namespace HdSplit.ViewModels
 			set {
 				_background = value;
 				NotifyOfPropertyChange(() => Background);
-			}
-		}
-
-		private BindableCollection<HdModel> _hds;
-		public BindableCollection<HdModel> Hds {
-			get { return _hds; }
-			set {
-				_hds = value;
-				NotifyOfPropertyChange(() => Hds);
 			}
 		}
 
@@ -172,18 +178,28 @@ namespace HdSplit.ViewModels
 			events.Subscribe(this);
 			#endregion
 
+			Location = ConfigurationManager.AppSettings["Location"];
+			IpAdrress = ConfigurationManager.AppSettings["PrinterIp"];
+
 			InformationText = "Scan HD to start splitting";
 			ErrorLabelShowRunning = false;
 			HdTaskIsRunning = false;
 			SelectedTab = 0;
 
-			Hds = new BindableCollection<HdModel>();
 			ReflexConnection = new ReflexConnectionModel();
 			ReflexTerminal = new ReflexTerminalModel();
 			ReflexTerminal.OpenReflexTerminal();
+
+
 		}
 
 		#region Events to buttons from ShellView and LoginView via EventAggregator
+
+		public void PrintLabel()
+		{
+			var line = HdDataGridModel.Hds[SelectedTab].Line.ToString();
+			ZebraModel.Print(line);
+		}
 
 		public void Confirm()
 		{
@@ -191,7 +207,8 @@ namespace HdSplit.ViewModels
 			switch (result)
 			{
 				case MessageBoxResult.Yes:
-					ReflexTerminal.ConfirmHd();
+					HdTaskIsRunning = true;
+					ReflexTerminal.ConfirmHd(HdDataGridModel.Hds);
 					Restart();
 					break;
 
@@ -237,7 +254,7 @@ namespace HdSplit.ViewModels
 
 		public void AddIpgToExistingHd(int _index)
 		{
-			Hds[_index].ListOfIpgs.Add(new IpgModel()
+			HdDataGridModel.Hds[_index].ListOfIpgs.Add(new IpgModel()
 			{
 				Grade = IpgToCreate.Grade,
 				Item = IpgToCreate.Item,
@@ -251,7 +268,7 @@ namespace HdSplit.ViewModels
 		{
 			HdDataGridModel.CountedHd = null;
 			HdDataGridModel.CountedHd = new HdModel(false);
-			Hds.Clear();
+			HdDataGridModel.Hds.Clear();
 			ScanningState = States.firstScanOfHd;
 			InformationText = "Scan HD to start splitting";
 			ErrorLabelShowRunning = false;
@@ -264,104 +281,124 @@ namespace HdSplit.ViewModels
 			//Loaded();
 		}
 
+		/// <summary>
+		/// Reaction to scan button click or to press enter
+		/// inside scanning box.
+		/// </summary>
+		/// <param name="keyArgs"></param>
+		/// <returns></returns>
 		public async Task ScanItemAsync(KeyEventArgs keyArgs)
 		{
+			Background = new SolidColorBrush(Colors.Transparent);
 			// keyArgs will be null if user clicked button scan.
 			// IF also checking if there is enter pressed.
 			if (keyArgs == null || keyArgs.Key == Key.Enter)
 			{
 				Sounds.PlayScanSound();
-				// IF checking about the state. Always start from firstScanOfHd. State needs to be set also in Reset().
-				if (ScanningState == States.firstScanOfHd)
+				switch (ScanningState)
 				{
-					// Validation of hd, and also updating info label. Needs to be refactored.
-					if (ValidateHd()) return;
+					case States.firstScanOfHd:
+						// Validation of hd, and also updating info label. Needs to be refactored.
+						if (ValidateHd()) return;
 
-					// Hd is validated, so here we are going to download all information asynchronized.
-					await Task.Factory.StartNew(() =>
-					{
-						// Save scanned barcoded so we can use it later.
-						HdDataGridModel.CountedHd.HdNumber = ScannedBarcode;
-						HdDataGridModel.CountedHd.TabHeader = ScannedBarcode;
-						HdTaskIsRunning = true;
-						// IF is checking if HD is unknown. IF yes then ScanHd return false, and Information label is updated.
-						if (!HdDataGridModel.ScanHd())
-						{
-							Notify("Hd Unknown", Background = new SolidColorBrush(Colors.Red));
-							ScannedBarcode = string.Empty;
-							return;
-						}
-
-						// HdNumber is binded to label on top of the program where you can see which HD user scanned.
-						HdNumber = HdDataGridModel.CountedHd.HdNumber;
-
-						// Clearing scanning box
-						ScannedBarcode = string.Empty;
-
-						// As it says...
-						StartSTATask(ReflexScanHd);
-						//ReflexTerminal.HdScanned(HdNumber);
-						HdDataGridModel.DownloadUpc();
-						ScanningState = States.itemScan;
-						InformationText = "Scan item.";
-						HdTaskIsRunning = false;
-						Hds.Add(HdDataGridModel.CountedHd);
-						SelectedTab = 0;
-					});
-					Console.WriteLine("Jestem już poza DownloadUPC");
-				}
-				else if (ScanningState == States.itemScan)
-				{
-					bool ItemNotFound = true;
-					try
-					{
-						foreach (var Ipg in HdDataGridModel.CountedHd.ListOfIpgs)
-						{
-							if (Ipg.Item == ScannedBarcode || Ipg.UpcCode == ScannedBarcode)
+						// Hd is validated, so here we are going to download all information asynchronized.
+						//await Task.Factory.StartNew(() =>
+						//{
+							if (!ScanNewHdForSplit())
 							{
-								ScannedItem = ScannedBarcode;
-								//StartSTATask(ReflexScanItem);
-								ReflexTerminal.ItemScanned(ScannedItem);
-								ItemNotFound = false;
-								IpgToCreate = Ipg;
-								IndexOfIpgToMinusOne = HdDataGridModel.CountedHd.ListOfIpgs.IndexOf(Ipg);
-								Ipg.Highlight = "LightGreen";
-								HdDataGridModel.CountedHd.ListOfIpgs.Refresh();
-								ScanningState = States.newHdScan;
-								InformationText = $"Scan HD with Line {IpgToCreate.Line}.";
 								return;
 							}
-						}
+						//});
 
-						if (ItemNotFound)
+						break;
+					case States.itemScan:
+						ItemScan();
+						break;
+					case States.newHdScan:
+						if (string.IsNullOrEmpty(Location))
 						{
-							Notify("This item do not belong to this HD.", new SolidColorBrush(Colors.Red));
+							Notify("Location Cannot be empty", Brushes.Red);
+							return;
+						}
+						if (ValidateHd()) return;
+
+						if (SearchForHd(ScannedBarcode))
+						{
+							QuantityMinusOne();
 
 							return;
 						}
-					}
-					finally
-					{
-						ScannedBarcode = string.Empty;
-					}
-				}
-				else if (ScanningState == States.newHdScan)
-				{
-					if (string.IsNullOrEmpty(Location))
-					{
-						MessageBox.Show("Location cannot be empty.");
-						return;
-					}
-					if (ValidateHd()) return;
-
-					if (SearchForHd(ScannedBarcode))
-					{
-						QuantityMinusOne();
-
-						return;
-					}
+						break;
 				}
 			}
+		}
+
+		private void ItemScan()
+		{
+			bool ItemNotFound = true;
+			try
+			{
+				foreach (var Ipg in HdDataGridModel.CountedHd.ListOfIpgs)
+				{
+					if (Ipg.Item == ScannedBarcode || Ipg.UpcCode == ScannedBarcode)
+					{
+						ScannedItem = ScannedBarcode;
+						//StartSTATask(ReflexScanItem);
+						ReflexTerminal.ItemScanned(ScannedItem);
+						ItemNotFound = false;
+						IpgToCreate = Ipg;
+						IndexOfIpgToMinusOne = HdDataGridModel.CountedHd.ListOfIpgs.IndexOf(Ipg);
+						Ipg.Highlight = "LightGreen";
+						HdDataGridModel.CountedHd.ListOfIpgs.Refresh();
+						ScanningState = States.newHdScan;
+						Background = new SolidColorBrush(Colors.Transparent);
+						InformationText = $"Scan HD with Line {IpgToCreate.Line}.";
+						return;
+					}
+				}
+
+				if (ItemNotFound)
+				{
+					Notify("This item do not belong to this HD.", Brushes.Red);
+
+					return;
+				}
+			}
+			finally
+			{
+				ScannedBarcode = string.Empty;
+			}
+		}
+
+		private bool ScanNewHdForSplit()
+		{
+			HdDataGridModel.CountedHd.HdNumber = ScannedBarcode;
+			HdDataGridModel.CountedHd.TabHeader = ScannedBarcode;
+			HdTaskIsRunning = true;
+			// IF is checking if HD is unknown. IF yes then ScanHd return false, and Information label is updated.
+			if (!HdDataGridModel.ScanHd())
+			{
+				Notify("Hd Unknown", Brushes.Red);
+				return false;
+			}
+
+			// HdNumber is binded to label on top of the program where you can see which HD user scanned.
+			HdNumber = HdDataGridModel.CountedHd.HdNumber;
+
+			// Clearing scanning box
+			ScannedBarcode = string.Empty;
+
+			// As it says...
+			StartSTATask(ReflexScanHd);
+			//ReflexTerminal.HdScanned(HdNumber);
+			HdDataGridModel.DownloadUpc();
+			ScanningState = States.itemScan;
+			InformationText = "Scan item.";
+			Background = new SolidColorBrush(Colors.Transparent);
+			HdTaskIsRunning = false;
+			HdDataGridModel.Hds.Add(HdDataGridModel.CountedHd);
+			SelectedTab = 0;
+			return true;
 		}
 
 		#endregion
@@ -401,18 +438,13 @@ namespace HdSplit.ViewModels
 			}
 		}
 
-		/// <summary>
-		/// Reaction to scan button click or to press enter
-		/// inside scanning box.
-		/// </summary>
-		/// <param name="keyArgs"></param>
-		/// <returns></returns>
+		
 
 		public bool ValidateHd()
 		{
 			if (!HdDataGridModel.CountedHd.CheckIfHdNumberIsCorrect(ScannedBarcode))
 			{
-				Notify("Incorrect HD", Background = new SolidColorBrush(Colors.Red));
+				Notify("Incorrect HD", Brushes.Red);
 
 				return true;
 			}
@@ -420,21 +452,30 @@ namespace HdSplit.ViewModels
 			return false;
 		}
 
-		private async Task Notify(string _message, Brush color)
-		{
-			if (!ErrorLabelShowRunning)
-			{
-				PreviousInformationText = InformationText;
-			}
+		public event EventHandler<FocusRequestedEventArgs> FocusRequsted;
 
-			//string _message = "Hd Unknown";
-			ErrorLabelShowRunning = true;
-			if (NotifyAboutIncorrectHdAsyncThread != null)
-			{
-				NotifyAboutIncorrectHdAsyncThread.Abort();
-				NotifyAboutIncorrectHdAsyncThread = null;
-				Background = new SolidColorBrush(Colors.Transparent);
-			}
+		protected virtual void OnFocusRequested(string propertyName)
+		{
+			FocusRequsted?.Invoke(this, new FocusRequestedEventArgs(propertyName));
+		}
+
+		private async Task Notify(string _message, SolidColorBrush color)
+		{
+			HdTaskIsRunning = true;
+			Log("Notify Started");
+			PreviousInformationText = InformationText;
+			//var newColor = new SolidColorBrush(color);
+
+			////string _message = "Hd Unknown";
+			//ErrorLabelShowRunning = true;
+			//if (NotifyAboutIncorrectHdAsyncThread != null)
+			//{
+			//	Log("Notify Thread is aborted");
+			//	NotifyAboutIncorrectHdAsyncThread.Abort();
+
+			//	NotifyAboutIncorrectHdAsyncThread = null;
+			//	Background = new SolidColorBrush(Colors.Transparent);
+			//}
 
 			InformationText = _message;
 			await Task.Run(() =>
@@ -444,12 +485,12 @@ namespace HdSplit.ViewModels
 				System.Threading.Thread.Sleep(3000);
 			});
 
-			if (InformationText == _message)
-			{
-				InformationText = PreviousInformationText;
-				ErrorLabelShowRunning = false;
-				Background = new SolidColorBrush(Colors.Transparent);
-			}
+			HdTaskIsRunning = false;
+			InformationText = PreviousInformationText;
+			ErrorLabelShowRunning = false;
+			ScannedBarcode = String.Empty;
+			Background = new SolidColorBrush(Colors.Transparent);
+			OnFocusRequested("ScannedBarcode");
 		}
 
 		private void QuantityMinusOne()
@@ -474,20 +515,21 @@ namespace HdSplit.ViewModels
 			bool ItemFounded = false;
 			bool HdFounded = false;
 
-			for (int i = 1; i < Hds.Count; i++)
+			// Look for hd in already opened ones.
+			for (int i = 1; i < HdDataGridModel.Hds.Count; i++)
 			{
-				if (Hds[i].HdNumber == _hd)
+				if (HdDataGridModel.Hds[i].HdNumber == _hd)
 				{
-					if (Hds[i].Line == IpgToCreate.Line)
+					// Check if Line is correct
+					if (HdDataGridModel.Hds[i].Line == IpgToCreate.Line)
 					{
-						foreach (var Ipg in Hds[i].ListOfIpgs)
+						foreach (var Ipg in HdDataGridModel.Hds[i].ListOfIpgs)
 						{
 							if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
 							{
 								Ipg.Quantity++;
 								ItemFounded = true;
 								HdForBreakdown = _hd;
-								//StartSTATask(ReflexIpgBreakdownToOldHd);
 								ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
 								return true;
 							}
@@ -522,15 +564,15 @@ namespace HdSplit.ViewModels
 					}
 					else
 					{
+						ZebraModel.Print(IpgToCreate.Line.ToString());
 						IpgBreakdownResult = ReflexTerminal.ReflexIpgBreakdownToNewHd(_hd, Location);
 					}
 					if (IpgBreakdownResult != null)
 					{
-						MessageBox.Show(IpgBreakdownResult);
-						ScannedBarcode = String.Empty;
+						Notify(IpgBreakdownResult, Brushes.Red);
 						return false;
 					}
-					Hds.Add(new HdModel(false)
+					HdDataGridModel.Hds.Add(new HdModel(false)
 					{
 						Grade = IpgToCreate.Grade,
 						Line = IpgToCreate.Line,
@@ -538,9 +580,8 @@ namespace HdSplit.ViewModels
 						ListOfIpgs = new BindableCollection<IpgModel>(),
 						TabHeader = $"{ScannedBarcode} - {IpgToCreate.Line.ToString()}"
 					});
-
 					//HdForBreakdown = _hd;
-					AddIpgToExistingHd(Hds.Count - 1);
+					AddIpgToExistingHd(HdDataGridModel.Hds.Count - 1);
 
 					//StartSTATask(ReflexIpgBreakdownToNewHd);
 					QuantityMinusOne();
@@ -597,6 +638,9 @@ namespace HdSplit.ViewModels
 
 		#endregion
 
-
+		public void Log(string message)
+		{
+			Debug.Print($"{DateTime.Now.ToString("hh:mm:ss:ffffff")}: {message}");
+		}
 	}
 }

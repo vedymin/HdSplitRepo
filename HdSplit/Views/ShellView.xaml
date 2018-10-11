@@ -8,6 +8,7 @@
         xmlns:views="clr-namespace:HdSplit.Views"
         xmlns:framework="clr-namespace:HdSplit.Framework"
         mc:Ignorable="d" FontSize="18"
+        Loaded="ShellView_OnLoaded"
         cal:Message.Attach="[Event Loaded] = [Action Loaded($eventArgs)];[Event Closing] = [Action OnClose($eventArgs)]"
         Title="HD Split/Check" Height="800" Width="1200" WindowStartupLocation="CenterScreen">
     <Window.Resources>
@@ -41,23 +42,35 @@
 
         <Grid Grid.Row="1" Grid.Column="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
             <Label FontSize="20" Grid.Column="0"
                    HorizontalContentAlignment="Left"
                    VerticalContentAlignment="Center">Location for new HD:</Label>
             <TextBox x:Name="Location"
-                     Margin="0,5,0,5"
+                     Margin="0,5,40,5"
                      FontSize="20" Grid.Column="1"
+                     HorizontalContentAlignment="Left"
+                     VerticalContentAlignment="Center" />
+            <Label FontSize="20" Grid.Column="2"
+                   HorizontalContentAlignment="Left"
+                   VerticalContentAlignment="Center">Printer IP:</Label>
+            <TextBox x:Name="IpAdrress"
+                     Margin="0,5,0,5"
+                     FontSize="20" Grid.Column="3"
                      HorizontalContentAlignment="Left"
                      VerticalContentAlignment="Center" />
         </Grid>
 
         <Grid Grid.Row="2" Grid.Column="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="180" />
             </Grid.ColumnDefinitions>
             <Label FontSize="20" Grid.Column="0"
                    HorizontalContentAlignment="Left"
@@ -65,13 +78,15 @@
             <Label FontSize="20" Grid.Column="1"
                    VerticalContentAlignment="Center"
                    Content="{Binding Login}"></Label>
+            <Button x:Name="PrintLabel"
+                Grid.Column="3">Print label with Lane</Button>
         </Grid>
 
         <!-- Hd Row -->
         <Grid Grid.Row="3" Grid.Column="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Label FontSize="20" Grid.Column="0"
                    HorizontalContentAlignment="Left"
@@ -84,7 +99,7 @@
 
         <!-- Tab control -->
         <TabControl x:Name="TabControl" Grid.Row="4" Grid.Column="1"
-                    ItemsSource="{Binding Hds}"
+                    ItemsSource="{Binding HdDataGridModel.Hds}"
                     SelectedIndex="{Binding SelectedTab}">
             <TabControl.ItemContainerStyle>
                 <Style TargetType="TabItem">

@@ -5,6 +5,8 @@ using AutPSTypeLibrary;
 using System;
 using System.Diagnostics;
 using System.Windows;
+using Caliburn.Micro;
+using HdSplit.ViewModels;
 
 namespace HdSplit.Models
 {
@@ -23,7 +25,7 @@ namespace HdSplit.Models
 		public string Login { get; set; }
 		public string Password { get; set; }
 		public const string View = "AA_SPLIT";
-		public const string Prod_Test = "20";
+		public const string Prod_Test = "1";
 
 		#region Future functions for general library
 
@@ -195,6 +197,7 @@ namespace HdSplit.Models
 			SendFkey(9);
 			SendString(16, 12, 2);
 			SendEnter();
+			WaitForInput();
 			connectionManager.StopConnection("Z", "saveprofile=no");
 		}
 
@@ -240,6 +243,15 @@ namespace HdSplit.Models
 			WaitForInput();
 		}
 
+		public void SendEnter(string textForWait)
+		{
+			WaitForInput();
+			presentationSpace.SendKeys("[tab]");
+			presentationSpace.SendKeys("[enter]");
+			WaitForText(textForWait);
+			WaitForInput();
+		}
+
 		public void SendPageDown()
 		{
 			WaitForInput();
@@ -254,14 +266,42 @@ namespace HdSplit.Models
 			WaitForInput();
 		}
 
+		public void SendFkey(int number, string textForWait)
+		{
+			WaitForInput();
+			presentationSpace.SendKeys($"[pf{number.ToString()}]");
+			WaitForText(textForWait);
+			WaitForInput();
+		}
+
 		#endregion SendKeys methods
 
-		public void ConfirmHd()
+		public void ConfirmHd(BindableCollection<HdModel> hds)
 		{
 			while (GetText(11, 8, 8) != " ")
 			{
 				MoveToPickBlo();
 			}
+			SendFkey(12);
+			for (int i = 1; i < hds.Count; i++)
+			{
+				MergeIpgs(hds[i].HdNumber.ToString());
+			}
+		}
+
+		private void MergeIpgs(string hd)
+		{
+			SendString(hd, 20, 28);
+			SendEnter("HLGE41");
+			SendString(14, 11, 2);
+			SendEnter("HLST63");
+			SendFkey(17);
+			SendString(13, 12, 2);
+			SendEnter();
+			SendFkey(12);
+			SendFkey(12);
+			SendFkey(12);
+			WaitForText("HLGE40");
 		}
 
 		private void MoveToPickBlo()
@@ -270,7 +310,7 @@ namespace HdSplit.Models
 			SendEnter();
 			SendEreaseField(16, 28);
 			SendString(GetText(15, 28, 34), 16, 28);
-			SendString(2, 17, 51);
+			SendString(70, 17, 50);
 			SendString("n", 18, 34);
 			SendString("n", 20, 34);
 			SendEnter();

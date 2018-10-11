@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using HdSplit.Framework;
+using HdSplit.ViewModels;
+using System.Windows;
 
 namespace HdSplit.Views {
     /// <summary>
@@ -9,5 +11,22 @@ namespace HdSplit.Views {
             InitializeComponent ();
         }
 
-    }
+	    private void ShellView_OnLoaded(object sender, RoutedEventArgs e)
+	    {
+		    IRequestFocus focus = (IRequestFocus)DataContext;
+
+		    focus.FocusRequsted += OnFocusRequest;
+	    }
+
+	    private void OnFocusRequest(object sender, FocusRequestedEventArgs e)
+	    {
+		    switch (e.PropertyName)
+		    {
+			    case "ScannedBarcode":
+				    ScannedBarcode.Focus();
+				    ScannedBarcode.SelectAll();
+				    break;
+		    }
+	    }
+	}
 }
