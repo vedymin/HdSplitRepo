@@ -27,15 +27,18 @@ namespace HdSplit.ViewModels
 			}
 		}
 
-		private string _ipAdrress;
-		public string IpAdrress {
-			get { return _ipAdrress; }
+		private string _printerIp;
+		public string PrinterIp {
+			get { return _printerIp; }
 			set {
-				_ipAdrress = value;
-				ZebraModel.ipAddress = value;
-				
-				ConfigurationHelper.SaveValue("PrinterIp", value);
-				NotifyOfPropertyChange(() => IpAdrress);
+				if (value != null)
+				{
+					_printerIp = value;
+					ZebraModel.ipAddress = value;
+					SettingsFile.PrinterIp = value;
+				}
+				//ConfigurationHelper.SaveValue("PrinterIp", value);
+				NotifyOfPropertyChange(() => PrinterIp);
 			}
 		}
 
@@ -55,8 +58,12 @@ namespace HdSplit.ViewModels
 		public string Location {
 			get { return _location; }
 			set {
-				_location = value;
-				ConfigurationHelper.SaveValue("Location", value);
+				if (value != null)
+				{
+					_location = value;
+					SettingsFile.Location = value;
+				}
+				//ConfigurationHelper.SaveValue("Location", value);
 				NotifyOfPropertyChange(() => Location);
 			}
 		}
@@ -178,14 +185,15 @@ namespace HdSplit.ViewModels
 			events.Subscribe(this);
 			#endregion
 
-			Location = ConfigurationManager.AppSettings["Location"];
-			IpAdrress = ConfigurationManager.AppSettings["PrinterIp"];
+			//Location = ConfigurationManager.AppSettings["Location"];
+			//PrinterIp = ConfigurationManager.AppSettings["PrinterIp"];
 
+
+			ReflexFile.CheckForFolderAndFile();
 			InformationText = "Scan HD to start splitting";
 			ErrorLabelShowRunning = false;
 			HdTaskIsRunning = false;
 			SelectedTab = 0;
-
 			ReflexConnection = new ReflexConnectionModel();
 			ReflexTerminal = new ReflexTerminalModel();
 			ReflexTerminal.OpenReflexTerminal();
@@ -220,7 +228,7 @@ namespace HdSplit.ViewModels
 			HdTaskIsRunning = true;
 			ReflexTerminal.ConfirmHd(HdDataGridModel.Hds);
 			Restart();
-			OnFocusRequested("ScannedBarcode");
+
 		}
 
 		public void Handle(LoginEvent message)
@@ -236,6 +244,8 @@ namespace HdSplit.ViewModels
 				ReflexTerminal.GoFromLoginToSelectIpgByLocationAsync();
 				ReflexTerminal.SetCorrectView();
 			}
+			this.Location = SettingsFile.Location;
+			this.PrinterIp = SettingsFile.PrinterIp;
 			//ReflexTerminal.CloseReflexTerminal();
 		}
 
@@ -283,7 +293,8 @@ namespace HdSplit.ViewModels
 			HdTaskIsRunning = false;
 			SelectedTab = 0;
 			ReflexTerminal.GoToSelectIpgByLocation();
-
+			ScannedBarcode = string.Empty;
+			OnFocusRequested("ScannedBarcode");
 			//RefreshTerminalSessionNames();
 			//Loaded();
 		}
@@ -457,7 +468,11 @@ namespace HdSplit.ViewModels
 			}
 		}
 
-		
+		public void LoadSettings()
+		{
+			Location = SettingsFile.Location;
+			PrinterIp = SettingsFile.PrinterIp;
+		}
 
 		public bool ValidateHd()
 		{

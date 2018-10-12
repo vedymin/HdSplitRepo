@@ -6,7 +6,6 @@ using System;
 using System.Diagnostics;
 using System.Windows;
 using Caliburn.Micro;
-using HdSplit.ViewModels;
 
 namespace HdSplit.Models
 {
@@ -24,6 +23,9 @@ namespace HdSplit.Models
 
 		public string Login { get; set; }
 		public string Password { get; set; }
+		public string FolderPath { get; private set; }
+		public string FilePath { get; private set; }
+
 		public const string View = "AA_SPLIT";
 		public const string Prod_Test = "1";
 
@@ -184,8 +186,9 @@ namespace HdSplit.Models
 
 		public void OpenReflexTerminal()
 		{
-			connectionManager.StartConnection("profile=./Resources/Reflex.ws connname=Z winstate=min");
-
+			FolderPath = $"{Environment.GetEnvironmentVariable("LocalAppData")}\\HdSplit";
+			FilePath = $"{FolderPath}\\Reflex.ws";
+			connectionManager.StartConnection($"profile={FilePath} connname=Z winstate=min");
 			WaitForConnectionIsReady("Z");
 			SetConnectionForOIAandPS();
 			WaitForText("Sign On");

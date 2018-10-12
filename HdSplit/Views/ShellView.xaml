@@ -58,7 +58,7 @@
             <Label FontSize="20" Grid.Column="2"
                    HorizontalContentAlignment="Left"
                    VerticalContentAlignment="Center">Printer IP:</Label>
-            <TextBox x:Name="IpAdrress"
+            <TextBox x:Name="PrinterIp"
                      Margin="0,5,0,5"
                      FontSize="20" Grid.Column="3"
                      HorizontalContentAlignment="Left"
@@ -78,7 +78,7 @@
             <Label FontSize="20" Grid.Column="1"
                    VerticalContentAlignment="Center"
                    Content="{Binding Login}"></Label>
-            <Button x:Name="PrintLabel" IsEnabled="False"
+            <Button x:Name="PrintLabel" IsEnabled="True"
                 Grid.Column="3">Print label with Lane</Button>
         </Grid>
 
