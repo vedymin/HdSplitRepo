@@ -12,10 +12,12 @@ namespace HdSplit {
     {
 
 	    private static readonly log4net.ILog log = LogHelper.GetLogger();
+	    public static string Environment;
 
 	    [STAThread]
-	    public static void Main()
-	    {
+	    public static void Main(string[] args)
+		{
+			Environment = args[0];
 			try
 			{
 				log.Info("------------------------ NEW OPENING OF APPLICATION --------------------------");

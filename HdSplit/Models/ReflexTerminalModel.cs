@@ -21,20 +21,29 @@ namespace HdSplit.Models
 		public AutConnMgrClass connectionManager = new AutConnMgrClass();
 		public AutOIAClass operatorInfoArea = new AutOIAClass();
 		public AutPSClass presentationSpace = new AutPSClass();
-
-		public ReflexTerminalModel()
-		{
-			log.Info("Contructor ReflexTerminalModel");
-			SetConnectionForOIAandPS();
-		}
-
 		public string Login { get; set; }
 		public string Password { get; set; }
 		public string FolderPath { get; private set; }
 		public string FilePath { get; private set; }
+		public string Environment { get; set; }
 
 		public const string View = "AA_SPLIT";
-		public const string Prod_Test = "1";
+
+		public ReflexTerminalModel()
+		{
+			if (App.Environment == "production")
+			{
+				Environment = "1";
+			}
+			else
+			{
+				Environment = "20";
+			}
+			log.Info("Contructor ReflexTerminalModel");
+			SetConnectionForOIAandPS();
+		}
+
+		
 
 		#region Future functions for general library
 
@@ -217,7 +226,7 @@ namespace HdSplit.Models
 		public void OpenReflexTerminal()
 		{
 			log.Info("Opening Reflex Terminal Z");
-			FolderPath = $"{Environment.GetEnvironmentVariable("LocalAppData")}\\HdSplit";
+			FolderPath = $"{System.Environment.GetEnvironmentVariable("LocalAppData")}\\HdSplit";
 			FilePath = $"{FolderPath}\\Reflex.ws";
 			log.Info("Starting connection");
 			connectionManager.StartConnection($"profile={FilePath} connname=Z winstate=min");
@@ -455,7 +464,7 @@ namespace HdSplit.Models
 
 			WaitForText("MENUINI");
 			// Production or Test
-			SendString(Prod_Test, 20, 7);
+			SendString(Environment, 20, 7);
 			SendEnter();
 			SendEnter();
 			SendString(4, 20, 7);

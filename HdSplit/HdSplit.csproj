@@ -16,9 +16,9 @@
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>C:\xampp\htdocs\hdsplit\</PublishUrl>
+    <PublishUrl>\\W200000003214\htdocs\hdsplit\</PublishUrl>
     <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
+    <InstallFrom>Unc</InstallFrom>
     <UpdateEnabled>true</UpdateEnabled>
     <UpdateMode>Foreground</UpdateMode>
     <UpdateInterval>7</UpdateInterval>
@@ -26,12 +26,12 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <UpdateUrl>http://10.55.140.2/hdsplit/</UpdateUrl>
+    <UpdateUrl>http://w200000003214/hdsplit/</UpdateUrl>
     <PublisherName>XPO Logistics</PublisherName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>45</ApplicationRevision>
-    <ApplicationVersion>1.0.4.%2a</ApplicationVersion>
+    <ApplicationRevision>2</ApplicationRevision>
+    <ApplicationVersion>1.0.5.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -76,6 +76,26 @@
   <PropertyGroup />
   <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Production|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Production\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Test|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Test\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Caliburn.Micro, Version=3.2.0.0, Culture=neutral, PublicKeyToken=8e5891231f2ed21f, processorArchitecture=MSIL">
@@ -224,6 +244,7 @@
     <Compile Include="Models\ReflexTerminalModel.cs" />
     <Compile Include="Models\Sounds.cs" />
     <Compile Include="Models\ZebraModel.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="ViewModels\HdDataGridViewModel.cs" />
     <Compile Include="Framework\LineConverter.cs" />
     <Compile Include="Framework\LineToHeaderConverter.cs" />

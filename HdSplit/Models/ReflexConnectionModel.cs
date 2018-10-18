@@ -14,7 +14,19 @@ namespace HdSplit.Models
 		iDB2Connection conn = new iDB2Connection ("DataSource=10.52.1.100; UserID=VASPROD; Password=VASPROD;");
         
         public HdModel OriginalHdModel { get; set; } = new HdModel(false);
-	    public string Environment { get; set; } = "GUEPRDDB";
+	    public string Environment { get; set; }
+
+	    public ReflexConnectionModel()
+	    {
+			if (App.Environment == "production")
+			{
+				Environment = "GUEPRDDB";
+			}
+			else
+			{
+				Environment = "WCSACCDB";
+			}
+		}
 		//WCSACCDB
 
 		/// <summary>
