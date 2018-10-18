@@ -141,7 +141,6 @@
         </Grid>
 
         <Button x:Name="Confirm" Grid.Row="7" Grid.Column="1"
-                IsDefault="False"
                 >Confirm that HD is empty</Button>
     </Grid>
 </Window>

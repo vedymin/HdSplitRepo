@@ -1,9 +1,12 @@
-﻿using System;
+﻿using HdSplit.Framework;
+using System;
 
 namespace HdSplit.Models
 {
 	public static class ZebraModel
 	{
+		private static readonly log4net.ILog log = LogHelper.GetLogger();
+
 
 		public static string ipAddress;
 
@@ -38,7 +41,7 @@ namespace HdSplit.Models
 			}
 			catch (Exception ex)
 			{
-				// Catch Exception
+				log.Error(ex);
 			}
 		}
 	}

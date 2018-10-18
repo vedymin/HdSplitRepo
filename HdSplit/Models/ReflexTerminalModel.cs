@@ -6,11 +6,17 @@ using System;
 using System.Diagnostics;
 using System.Windows;
 using Caliburn.Micro;
+using HdSplit.Framework;
 
 namespace HdSplit.Models
 {
+	
 	public class ReflexTerminalModel
 	{
+
+		private static readonly log4net.ILog log = LogHelper.GetLogger();
+
+
 		public AutConnListClass connectionList = new AutConnListClass();
 		public AutConnMgrClass connectionManager = new AutConnMgrClass();
 		public AutOIAClass operatorInfoArea = new AutOIAClass();
@@ -18,6 +24,7 @@ namespace HdSplit.Models
 
 		public ReflexTerminalModel()
 		{
+			log.Info("Contructor ReflexTerminalModel");
 			SetConnectionForOIAandPS();
 		}
 
@@ -27,7 +34,7 @@ namespace HdSplit.Models
 		public string FilePath { get; private set; }
 
 		public const string View = "AA_SPLIT";
-		public const string Prod_Test = "1";
+		public const string Prod_Test = "20";
 
 		#region Future functions for general library
 
@@ -94,16 +101,19 @@ namespace HdSplit.Models
 
 		public void WaitForConnectionIsReady(string _sessionName)
 		{
-			TimeSpan maxDuration = TimeSpan.FromSeconds(15);
+			log.Info("Waiting for connection with Z - 30 seconds timeout");
+			TimeSpan maxDuration = TimeSpan.FromSeconds(30);
 			Stopwatch sw = Stopwatch.StartNew();
 
 			while (sw.Elapsed < maxDuration)
 			{
 				if (CheckIfConnected(_sessionName))
 				{
+					log.Info("Connected with Z");
 					return;
 				}
 			}
+			log.Error("Timeout - Message box with error info pop up. Going to close app.");
 			CloseAppBecauseOfCriticalError("There is problem with connection to Reflex. " +
 										   "Please Check your connection and" +
 										   "run the application again.");
@@ -115,13 +125,32 @@ namespace HdSplit.Models
 
 		public void WaitForInput()
 		{
-			TimeSpan maxDuration = TimeSpan.FromSeconds(15);
+			TimeSpan maxDuration = TimeSpan.FromSeconds(20);
 			Stopwatch sw = Stopwatch.StartNew();
 
 			while (sw.Elapsed < maxDuration)
 			{
 				if (operatorInfoArea.InputInhibited == InhibitReason.pcNotInhibited)
 				{
+					presentationSpace.SendKeys("[reset]");
+					operatorInfoArea.WaitForInputReady(null);
+					return;
+				}
+				presentationSpace.SendKeys("[reset]");
+			}
+			CloseAppBecauseOfCriticalError("Unexpected error occur while waiting for input. Please run application again.");
+		}
+
+		public void WaitForInput(int seconds)
+		{
+			TimeSpan maxDuration = TimeSpan.FromSeconds(seconds);
+			Stopwatch sw = Stopwatch.StartNew();
+
+			while (sw.Elapsed < maxDuration)
+			{
+				if (operatorInfoArea.InputInhibited == InhibitReason.pcNotInhibited)
+				{
+					presentationSpace.SendKeys("[reset]");
 					operatorInfoArea.WaitForInputReady(null);
 					return;
 				}
@@ -136,7 +165,8 @@ namespace HdSplit.Models
 
 		public void WaitForText(string text)
 		{
-			TimeSpan maxDuration = TimeSpan.FromSeconds(15);
+			log.Info("Waiting for text \"Sign On\" on the screen - 15 seconds timeout");
+			TimeSpan maxDuration = TimeSpan.FromSeconds(40);
 			Stopwatch sw = Stopwatch.StartNew();
 
 			while (sw.Elapsed < maxDuration)
@@ -147,7 +177,7 @@ namespace HdSplit.Models
 					return;
 				}
 			}
-
+			log.Info("Timeout - Messagebox pop up - going to close App");
 			CloseAppBecauseOfCriticalError("Unexpected error occur while waiting for string. Please run application again.");
 		}
 
@@ -186,29 +216,42 @@ namespace HdSplit.Models
 
 		public void OpenReflexTerminal()
 		{
+			log.Info("Opening Reflex Terminal Z");
 			FolderPath = $"{Environment.GetEnvironmentVariable("LocalAppData")}\\HdSplit";
 			FilePath = $"{FolderPath}\\Reflex.ws";
+			log.Info("Starting connection");
 			connectionManager.StartConnection($"profile={FilePath} connname=Z winstate=min");
 			WaitForConnectionIsReady("Z");
 			SetConnectionForOIAandPS();
-			WaitForText("Sign On");
+			//WaitForText("Sign On");
 		}
 
 		public void CloseReflexTerminal()
 		{
+			log.Info("Closing Reflex Terminal");
 			SendEnter();
 			SendFkey(9);
 			SendString(16, 12, 2);
 			SendEnter();
-			WaitForInput();
+			log.Info("Waiting 5 sec for input");
+			WaitForInput(5);
+			log.Info("ConnectionManager.StopConnection");
 			connectionManager.StopConnection("Z", "saveprofile=no");
 		}
 
 		public void CloseAppBecauseOfCriticalError(string message)
 		{
+			log.Info($"CloseAppBecauseOfCriticalError - {message}");
 			MessageBox.Show(message);
-			CloseReflexTerminal();
-			Application.Current.Shutdown();
+			try
+			{
+				CloseReflexTerminal();
+			}
+			finally
+			{
+				log.Info("Application Shutdown");
+				Application.Current.Shutdown();
+			}
 		}
 
 		#endregion Open/Close Reflex Terminal
@@ -349,6 +392,7 @@ namespace HdSplit.Models
 		{
 			try
 			{
+				WaitForText("Sign On");
 				WaitForInput();
 				ClearScreen();
 				SendString(Login, 6, 53);
@@ -506,12 +550,15 @@ namespace HdSplit.Models
 
 		public void SetConnectionForOIAandPS()
 		{
+			log.Info("Setting connection to OIA and PS classes");
 			operatorInfoArea = null;
 			presentationSpace = null;
 			operatorInfoArea = new AutOIAClass();
 			presentationSpace = new AutPSClass();
 			operatorInfoArea.SetConnectionByName("Z");
 			presentationSpace.SetConnectionByName("Z");
+			log.Info("Setting connection to OIA and PS classes SUCCESFULL");
+
 		}
 
 		public string ReflexIpgBreakdownToNewHd(string hd, string location)

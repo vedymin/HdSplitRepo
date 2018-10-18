@@ -1,22 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using Caliburn.Micro;
+using HdSplit.Framework;
 using IBM.Data.DB2.iSeries;
 
 namespace HdSplit.Models
 {
     public class ReflexConnectionModel
     {
-        // Consider throwing this into configuration file.
-        iDB2Connection conn = new iDB2Connection ("DataSource=10.52.1.100; UserID=VASPROD; Password=VASPROD;");
+	    private static readonly log4net.ILog log = LogHelper.GetLogger();
+
+		// Consider throwing this into configuration file.
+		iDB2Connection conn = new iDB2Connection ("DataSource=10.52.1.100; UserID=VASPROD; Password=VASPROD;");
         
         public HdModel OriginalHdModel { get; set; } = new HdModel(false);
+	    public string Environment { get; set; } = "WCSACCDB";
+		//WCSACCDB
 
-        /// <summary>
-        /// Returns true if HD exist, and saves this hd in OriginalHdModel instance created in this class.
-        /// If hd is Unknown returns false.
-        /// </summary>
-        public bool DownloadHdFromReflex(string _hd) 
+		/// <summary>
+		/// Returns true if HD exist, and saves this hd in OriginalHdModel instance created in this class.
+		/// If hd is Unknown returns false.
+		/// </summary>
+		public bool DownloadHdFromReflex(string _hd) 
         {
             Console.WriteLine ("Trying to connect to Reflex for downloading HD informations.");
 
@@ -31,8 +36,8 @@ namespace HdSplit.Models
                     // Query join table where we can see lines by items. A2CFAN is telling to DB2 to show only lines value.
                     // You can change it to show CAPO or something else. Result will be in field A2CFAR.
                     // This also needs to be ordered by Item.
-                    string _queryString = "SELECT GECART, GECQAL, A2CFAR, GEQGEI FROM GUEPRDDB.HLGEINP " + 
-                                   "inner join GUEPRDDB.HLCDFAP on GECART = A2CART " + 
+                    string _queryString = $"SELECT GECART, GECQAL, A2CFAR, GEQGEI FROM {Environment}.HLGEINP " + 
+                                   $"inner join {Environment}.HLCDFAP on GECART = A2CART " + 
                                    $"WHERE GENSUP = '{_hd}' and A2CFAN = 'LINE' " +
                                    "Order by GECART";
                     iDB2Command comm = conn.CreateCommand ();
@@ -108,7 +113,7 @@ namespace HdSplit.Models
                     Console.WriteLine("Successfully connected to Reflex for downloading UPC codes");
 
                     // Below are DB2 functions needed for executing query
-                    string _queryString = $"SELECT VICART, VICIVL FROM GUEPRDDB.HLVLIDP WHERE VICART IN {_items} and VICTYI = 'EAN_1' Order by VICIVL ";
+                    string _queryString = $"SELECT VICART, VICIVL FROM {Environment}.HLVLIDP WHERE VICART IN {_items} and VICTYI = 'EAN_1' Order by VICIVL ";
                     iDB2Command comm = conn.CreateCommand();
                     comm.CommandText = _queryString;
                     iDB2DataReader reader = comm.ExecuteReader();

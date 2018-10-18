@@ -7,6 +7,7 @@ namespace HdSplit.ViewModels
     [Export(typeof(HdDataGridViewModel))]
     public class HdDataGridViewModel : PropertyChangedBase
     {
+		
 	    private BindableCollection<HdModel> _hds = new BindableCollection<HdModel>();
 	    public BindableCollection<HdModel> Hds {
 		    get { return _hds; }

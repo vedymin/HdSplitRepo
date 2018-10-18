@@ -14,9 +14,13 @@ using System.Windows.Media;
 
 namespace HdSplit.ViewModels
 {
+
+
 	[Export(typeof(ShellViewModel))]
 	public class ShellViewModel : PropertyChangedBase, IHandle<LoginEvent>, IHandle<CloseOnLoginEvent>, IRequestFocus
 	{
+		private static readonly log4net.ILog log = LogHelper.GetLogger();
+		
 		#region Strings with private fields
 		private string _informationText;
 		public string InformationText {
@@ -81,7 +85,7 @@ namespace HdSplit.ViewModels
 		public string ScannedBarcode {
 			get { return _scannedBarcode; }
 			set {
-				_scannedBarcode = value;
+				_scannedBarcode = value.Substring(Math.Max(0, value.Length - 18));
 				NotifyOfPropertyChange(() => ScannedBarcode);
 			}
 		}
@@ -177,6 +181,7 @@ namespace HdSplit.ViewModels
 		[ImportingConstructor]
 		public ShellViewModel(HdDataGridViewModel hdDataGridModel, LoginViewModel loginViewModel, IWindowManager windowManager, IEventAggregator events)
 		{
+			log.Info("Constructor ShellViewModel");
 			#region Events and windows
 			LoginViewModel = loginViewModel;
 			WindowManager = windowManager;
@@ -192,8 +197,8 @@ namespace HdSplit.ViewModels
 			ReflexFile.CheckForFolderAndFile();
 			InformationText = "Scan HD to start splitting";
 			ErrorLabelShowRunning = false;
-			HdTaskIsRunning = false;
 			SelectedTab = 0;
+			HdTaskIsRunning = false;
 			ReflexConnection = new ReflexConnectionModel();
 			ReflexTerminal = new ReflexTerminalModel();
 			ReflexTerminal.OpenReflexTerminal();
@@ -223,7 +228,7 @@ namespace HdSplit.ViewModels
 			}
 		}
 
-		private void Confirm()
+		public void Confirm()
 		{
 			HdTaskIsRunning = true;
 			ReflexTerminal.ConfirmHd(HdDataGridModel.Hds);
@@ -316,6 +321,7 @@ namespace HdSplit.ViewModels
 				Sounds.PlayScanSound();
 				if (ScannedBarcode == "CONFIRM HD")
 				{
+					log.Info("Scanned CONFIRM HD");
 					Confirm();
 					return;
 				}
@@ -323,6 +329,7 @@ namespace HdSplit.ViewModels
 				{
 					case States.firstScanOfHd:
 						// Validation of hd, and also updating info label. Needs to be refactored.
+						log.Info($"Scanned hd to split: {ScannedBarcode}");
 						if (ValidateHd())
 						{
 							OnFocusRequested("ScannedBarcode");
@@ -332,21 +339,24 @@ namespace HdSplit.ViewModels
 						// Hd is validated, so here we are going to download all information asynchronized.
 						//await Task.Factory.StartNew(() =>
 						//{
-							if (!ScanNewHdForSplit())
-							{
-								OnFocusRequested("ScannedBarcode");
-								return;
-							}
+						if (!ScanNewHdForSplit())
+						{
+							OnFocusRequested("ScannedBarcode");
+							return;
+						}
 						//});
 
 						break;
 					case States.itemScan:
+						log.Info($"Scanned item: {ScannedBarcode}");
 						ItemScan();
 						OnFocusRequested("ScannedBarcode");
 						break;
 					case States.newHdScan:
+						log.Info($"Scanned destination HD: {ScannedBarcode}");
 						if (string.IsNullOrEmpty(Location))
 						{
+							log.Warn("Location was empty when item was scanned.");
 							Notify("Location Cannot be empty", Brushes.Red);
 							return;
 						}
@@ -355,6 +365,7 @@ namespace HdSplit.ViewModels
 						if (SearchForHd(ScannedBarcode))
 						{
 							QuantityMinusOne();
+							
 							OnFocusRequested("ScannedBarcode");
 							return;
 						}
@@ -538,6 +549,11 @@ namespace HdSplit.ViewModels
 			}
 			TempIpg.Highlight = "White";
 			HdDataGridModel.CountedHd.ListOfIpgs.Refresh();
+
+			if (HdDataGridModel.CountedHd.ListOfIpgs.Count == 0)
+			{
+				Confirm();
+			}
 
 			ScanningState = States.itemScan;
 			InformationText = "Scan item.";

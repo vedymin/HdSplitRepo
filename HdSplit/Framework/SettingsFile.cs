@@ -6,6 +6,8 @@ namespace HdSplit.Framework
 {
 	public static class SettingsFile
 	{
+		private static readonly log4net.ILog log = LogHelper.GetLogger();
+
 		public static string FolderPath { get; set; }
 		public static string FilePath { get; set; }
 

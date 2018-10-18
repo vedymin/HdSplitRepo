@@ -5,6 +5,9 @@ namespace HdSplit.Framework
 {
 	public static class ReflexFile
 	{
+		private static readonly log4net.ILog log = LogHelper.GetLogger();
+
+		// constructor
 		static ReflexFile()
 		{
 			FolderPath = $"{Environment.GetEnvironmentVariable("LocalAppData")}\\HdSplit";
@@ -17,14 +20,19 @@ namespace HdSplit.Framework
 
 		internal static void CheckForFolderAndFile()
 		{
+			log.Info("Checking for Reflex ws file and directory");
 			if (File.Exists(FilePath) is false)
 			{
+				log.Info("File not exists. Going to create.");
 				if (Directory.Exists(FolderPath) is false)
 				{
+					log.Info("Folder also not exists. Going to create.");
 					Directory.CreateDirectory(FolderPath);
 				}
+				File.Delete(FilePath);
 				SaveToFile();
 			}
+
 
 		}
 
