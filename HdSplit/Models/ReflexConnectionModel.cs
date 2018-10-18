@@ -14,7 +14,7 @@ namespace HdSplit.Models
 		iDB2Connection conn = new iDB2Connection ("DataSource=10.52.1.100; UserID=VASPROD; Password=VASPROD;");
         
         public HdModel OriginalHdModel { get; set; } = new HdModel(false);
-	    public string Environment { get; set; } = "WCSACCDB";
+	    public string Environment { get; set; } = "GUEPRDDB";
 		//WCSACCDB
 
 		/// <summary>

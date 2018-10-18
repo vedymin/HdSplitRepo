@@ -34,7 +34,7 @@ namespace HdSplit.Models
 		public string FilePath { get; private set; }
 
 		public const string View = "AA_SPLIT";
-		public const string Prod_Test = "20";
+		public const string Prod_Test = "1";
 
 		#region Future functions for general library
 
