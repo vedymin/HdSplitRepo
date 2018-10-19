@@ -553,6 +553,7 @@ namespace HdSplit.ViewModels
 			if (HdDataGridModel.CountedHd.ListOfIpgs.Count == 0)
 			{
 				Confirm();
+				return;
 			}
 
 			ScanningState = States.itemScan;
