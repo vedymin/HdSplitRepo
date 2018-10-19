@@ -17,7 +17,14 @@ namespace HdSplit {
 	    [STAThread]
 	    public static void Main(string[] args)
 		{
-			Environment = args[0];
+			if (args.Length > 0)
+			{
+				Environment = args[0];
+			}
+			else
+			{
+				Environment = "production";
+			}
 			try
 			{
 				log.Info("------------------------ NEW OPENING OF APPLICATION --------------------------");
