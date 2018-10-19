@@ -24,7 +24,7 @@ namespace HdSplit.Models
 			}
 			else
 			{
-				Environment = "WCSACCDB";
+				Environment = "WCSTSTDB";
 			}
 		}
 		//WCSACCDB
