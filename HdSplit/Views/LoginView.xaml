@@ -42,7 +42,7 @@
                  >10.52.1.100</TextBox>
 
         <Label Grid.Row="2" Grid.Column="2"
-               VerticalContentAlignment="Center">User ID:</Label>
+               VerticalContentAlignment="Center">User id:</Label>
 
         <TextBox x:Name="Login" Grid.Row="2" Grid.Column="3" Margin="5"
                  VerticalContentAlignment="Center">dawidm</TextBox>

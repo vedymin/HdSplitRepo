@@ -6,19 +6,22 @@ using System.Dynamic;
 using System.Linq;
 using System.Windows;
 using Caliburn.Micro;
+using HdSplit.Framework;
 using HdSplit.ViewModels;
 
 namespace HdSplit
 {
     public class Bootstrapper : BootstrapperBase {
 
-        public Bootstrapper() {
+	    private static readonly log4net.ILog log = LogHelper.GetLogger();
+
+		public Bootstrapper() {
             Initialize ();
 
         }
 
         protected override void OnStartup(object sender, StartupEventArgs e) {
-
+			log.Info("OnStartup method -> DisplayRootViewFor<ShellViewModel>");
             DisplayRootViewFor<ShellViewModel> ();
         }
 

@@ -9,6 +9,8 @@ namespace HdSplit.ViewModels
 	[Export(typeof(LoginViewModel))]
 	public class LoginViewModel : Screen, IHandle<LoginConfirmedEvent>
 	{
+		private static readonly log4net.ILog log = LogHelper.GetLogger();
+
 		public bool ClosedByX = true;
 		private readonly IEventAggregator _events;
 
@@ -19,9 +21,11 @@ namespace HdSplit.ViewModels
 		[ImportingConstructor]
 		public LoginViewModel(IEventAggregator events)
 		{
+			log.Info("LoginView constructor started");
 			_events = events;
 			events.Subscribe(this);
-			ReflexTerminalModel reflex = new ReflexTerminalModel();
+			log.Info("Create new instance of ReflexTerminalModel");
+			//ReflexTerminalModel reflex = new ReflexTerminalModel();
 		}
 
 		public string Login {
@@ -59,11 +63,6 @@ namespace HdSplit.ViewModels
 		public void OkButton()
 		{
 			_events.PublishOnUIThread(new LoginEvent(Login, Password));
-
-			//MessageBox.Show("działa");
-			//ClosedByX = false;
-			//TryClose(true);
-			//ClosedByX = true;
 		}
 
 		public void OnClose(KeyEventArgs keyArgs)
