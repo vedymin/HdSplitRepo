@@ -1,4 +1,4 @@
-using Caliburn.Micro;
+﻿using Caliburn.Micro;
 using HdSplit.Framework;
 using HdSplit.Models;
 using System;
@@ -129,7 +129,7 @@ namespace HdSplit.ViewModels
 				}
 				else
 				{
-					CanCheckLine = false;
+					CanTestCheckLine = false;
 				}
 				NotifyOfPropertyChange(() => ScanningState);
 			}
@@ -167,7 +167,16 @@ namespace HdSplit.ViewModels
 
 		#region Guards
 
-		public bool CanCheckLine { get; set; }
+		private bool _canTestCheckLine;
+		public bool CanTestCheckLine
+		{
+			get { return _canTestCheckLine; }
+			set
+			{
+				_canTestCheckLine = value;
+				NotifyOfPropertyChange(() => CanTestCheckLine);
+			}
+		}
 
 		public bool CanScanItemAsync {
 			get { return !HdTaskIsRunning; }
@@ -227,6 +236,8 @@ namespace HdSplit.ViewModels
 			ErrorLabelShowRunning = false;
 			SelectedTab = 0;
 			HdTaskIsRunning = false;
+			ScanningState = States.firstScanOfHd;
+			CanTestCheckLine = true;
 			ReflexConnection = new ReflexConnectionModel();
 			ReflexTerminal = new ReflexTerminalModel();
 			ReflexTerminal.OpenReflexTerminal();
