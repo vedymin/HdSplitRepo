@@ -238,12 +238,12 @@ namespace HdSplit.Models
 		public void CloseReflexTerminal()
 		{
 			log.Info("Closing Reflex Terminal");
-			SendEnter();
-			SendFkey(9);
-			SendString(16, 12, 2);
-			SendEnter();
-			log.Info("Waiting 5 sec for input");
-			WaitForInput(5);
+			//SendEnter();
+			//SendFkey(9);
+			//SendString(16, 12, 2);
+			//SendEnter();
+			//log.Info("Waiting 5 sec for input");
+			//WaitForInput(5);
 			log.Info("ConnectionManager.StopConnection");
 			connectionManager.StopConnection("Z", "saveprofile=no");
 		}
