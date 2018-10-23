@@ -1,4 +1,4 @@
-﻿using Caliburn.Micro;
+using Caliburn.Micro;
 using HdSplit.Framework;
 using HdSplit.Models;
 using System;
@@ -486,17 +486,21 @@ namespace HdSplit.ViewModels
 			{
 				// Tricky way to copy one hd to another. Needs to go thru properties manually.
 				// There is porobably better way with function CopyOriginalHdToCountedHd().
-				//foreach (var Ipg in reflexConnection.OriginalHdModel.ListOfIpgs)
-				//{
-				//	if (Ipg.Line == IpgToCreate.Line)
-				//	{
-				//		continue;
-				//	}
-				//	else
-				//	{
-				//		return HdResult.differentLine;
-				//	}
-				//}
+				if (CheckLine)
+				{
+					foreach (var Ipg in reflexConnection.OriginalHdModel.ListOfIpgs)
+					{
+						if (Ipg.Line == IpgToCreate.Line)
+						{
+							continue;
+						}
+						else
+						{
+							return HdResult.differentLine;
+						}
+					}
+				}
+
 				//// We still have some data so return true.
 				return HdResult.hdCorrect;
 			}
@@ -600,34 +604,62 @@ namespace HdSplit.ViewModels
 				if (HdDataGridModel.Hds[i].HdNumber == _hd)
 				{
 					// Check if Line is correct
-					//if (HdDataGridModel.Hds[i].Line == IpgToCreate.Line)
-					//{
-					foreach (var Ipg in HdDataGridModel.Hds[i].ListOfIpgs)
+					if (CheckLine)
 					{
-						if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
+						if (HdDataGridModel.Hds[i].Line == IpgToCreate.Line)
 						{
-							Ipg.Quantity++;
-							ItemFounded = true;
+							foreach (var Ipg in HdDataGridModel.Hds[i].ListOfIpgs)
+							{
+								if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
+								{
+									Ipg.Quantity++;
+									ItemFounded = true;
+									HdForBreakdown = _hd;
+									ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
+									return true;
+								}
+							}
+
+							if (!ItemFounded)
+							{
+								HdForBreakdown = _hd;
+								AddIpgToExistingHd(i);
+								ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
+								return true;
+							}
+						}
+						else
+						{
+							Notify("This HD have wrong LINE!", Brushes.Red);
+							ScannedBarcode = String.Empty;
+							return false;
+						}
+
+					}
+					else
+					{
+						foreach (var Ipg in HdDataGridModel.Hds[i].ListOfIpgs)
+						{
+							if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
+							{
+								Ipg.Quantity++;
+								ItemFounded = true;
+								HdForBreakdown = _hd;
+								ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
+								return true;
+							}
+						}
+
+						if (!ItemFounded)
+						{
 							HdForBreakdown = _hd;
+							AddIpgToExistingHd(i);
 							ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
 							return true;
 						}
 					}
 
-					if (!ItemFounded)
-					{
-						HdForBreakdown = _hd;
-						AddIpgToExistingHd(i);
-						ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
-						return true;
-					}
-					//}
-					//else
-					//{
-					//	Notify("This HD have wrong LINE!", Brushes.Red);
-					//	ScannedBarcode = String.Empty;
-					//	return false;
-					//}
+
 				}
 			}
 
@@ -643,7 +675,10 @@ namespace HdSplit.ViewModels
 					}
 					else
 					{
-						//ZebraModel.Print(IpgToCreate.Line.ToString());
+						if (CheckLine)
+						{
+							ZebraModel.Print(IpgToCreate.Line.ToString());
+						}
 						IpgBreakdownResult = ReflexTerminal.ReflexIpgBreakdownToNewHd(_hd, Location);
 					}
 					if (IpgBreakdownResult != null)
