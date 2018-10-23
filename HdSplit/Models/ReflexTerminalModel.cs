@@ -268,6 +268,7 @@ namespace HdSplit.Models
 			{
 				log.Info("Application Shutdown");
 				Application.Current.Shutdown();
+				throw new InvalidOperationException();
 			}
 		}
 
