@@ -116,6 +116,34 @@ namespace HdSplit.ViewModels
 			}
 		}
 
+		private States _scanningState;
+		public States ScanningState
+		{
+			get { return _scanningState;}
+			set
+			{
+				_scanningState = value;
+				if (ScanningState == States.firstScanOfHd)
+				{
+					CanCheckLine = true;
+				}
+				else
+				{
+					CanCheckLine = false;
+				}
+				NotifyOfPropertyChange(() => ScanningState);
+			}
+		}
+
+		private bool _checkLine;
+		public bool CheckLine {
+			get { return _checkLine; }
+			set {
+				_checkLine = value;
+				NotifyOfPropertyChange(() => CheckLine);
+			}
+		}
+
 		private bool _hdTaskIsRunning;
 		public bool HdTaskIsRunning {
 			get { return _hdTaskIsRunning; }
@@ -139,6 +167,8 @@ namespace HdSplit.ViewModels
 
 		#region Guards
 
+		public bool CanCheckLine { get; set; }
+
 		public bool CanScanItemAsync {
 			get { return !HdTaskIsRunning; }
 		}
@@ -151,8 +181,6 @@ namespace HdSplit.ViewModels
 
 		#region Automatic Properties
 		
-		public States ScanningState { get; set; }
-
 		public int IndexOfIpgToMinusOne { get; set; }
 
 		public string ScannedItem { get; set; }
