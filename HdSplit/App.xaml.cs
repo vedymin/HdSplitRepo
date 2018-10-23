@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using HdSplit.Framework;
 
@@ -17,6 +18,15 @@ namespace HdSplit {
 	    [STAThread]
 	    public static void Main(string[] args)
 		{
+			foreach (var process in Process.GetProcessesByName("HdSplit"))
+			{
+				if (process.Id != Process.GetCurrentProcess().Id)
+				{
+					process.Kill();
+				}
+				
+			}
+
 			if (args.Length > 0)
 			{
 				Environment = args[0];
