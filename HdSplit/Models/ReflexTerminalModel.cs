@@ -229,7 +229,15 @@ namespace HdSplit.Models
 			FolderPath = $"{System.Environment.GetEnvironmentVariable("LocalAppData")}\\HdSplit";
 			FilePath = $"{FolderPath}\\Reflex.ws";
 			log.Info("Starting connection");
-			connectionManager.StartConnection($"profile={FilePath} connname=Z winstate=min");
+			if (CheckIfConnected("z"))
+			{
+				operatorInfoArea.StopCommunication();
+				operatorInfoArea.StartCommunication();
+			}
+			else
+			{
+				connectionManager.StartConnection($"profile={FilePath} connname=Z winstate=min");
+			}
 			WaitForConnectionIsReady("Z");
 			SetConnectionForOIAandPS();
 			//WaitForText("Sign On");
