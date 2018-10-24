@@ -229,7 +229,15 @@ namespace HdSplit.Models
 			FolderPath = $"{System.Environment.GetEnvironmentVariable("LocalAppData")}\\HdSplit";
 			FilePath = $"{FolderPath}\\Reflex.ws";
 			log.Info("Starting connection");
-			connectionManager.StartConnection($"profile={FilePath} connname=Z winstate=min");
+			if (CheckIfConnected("z"))
+			{
+				operatorInfoArea.StopCommunication();
+				operatorInfoArea.StartCommunication();
+			}
+			else
+			{
+				connectionManager.StartConnection($"profile={FilePath} connname=Z winstate=min");
+			}
 			WaitForConnectionIsReady("Z");
 			SetConnectionForOIAandPS();
 			//WaitForText("Sign On");
@@ -238,12 +246,12 @@ namespace HdSplit.Models
 		public void CloseReflexTerminal()
 		{
 			log.Info("Closing Reflex Terminal");
-			SendEnter();
-			SendFkey(9);
-			SendString(16, 12, 2);
-			SendEnter();
-			log.Info("Waiting 5 sec for input");
-			WaitForInput(5);
+			//SendEnter();
+			//SendFkey(9);
+			//SendString(16, 12, 2);
+			//SendEnter();
+			//log.Info("Waiting 5 sec for input");
+			//WaitForInput(5);
 			log.Info("ConnectionManager.StopConnection");
 			connectionManager.StopConnection("Z", "saveprofile=no");
 		}
@@ -260,6 +268,7 @@ namespace HdSplit.Models
 			{
 				log.Info("Application Shutdown");
 				Application.Current.Shutdown();
+				throw new InvalidOperationException();
 			}
 		}
 
