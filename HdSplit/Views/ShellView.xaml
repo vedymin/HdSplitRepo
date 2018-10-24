@@ -98,7 +98,7 @@
                    HorizontalAlignment="Left"
                    VerticalAlignment="Center"></TextBlock>
             <CheckBox Grid.Column="2" x:Name="CheckLine"
-                      IsEnabled="{Binding CanTestCheckLine}"
+                      IsEnabled="{Binding CanCheckLine}"
                       HorizontalAlignment="Center"
                       VerticalAlignment="Center"></CheckBox>
             <Label FontSize="20" Grid.Column="3">Check Line</Label>

@@ -129,7 +129,7 @@ namespace HdSplit.ViewModels
 				}
 				else
 				{
-					CanTestCheckLine = false;
+					CanCheckLine = false;
 				}
 				NotifyOfPropertyChange(() => ScanningState);
 			}
@@ -168,13 +168,13 @@ namespace HdSplit.ViewModels
 		#region Guards
 
 		private bool _canTestCheckLine;
-		public bool CanTestCheckLine
+		public bool CanCheckLine
 		{
 			get { return _canTestCheckLine; }
 			set
 			{
 				_canTestCheckLine = value;
-				NotifyOfPropertyChange(() => CanTestCheckLine);
+				NotifyOfPropertyChange(() => CanCheckLine);
 			}
 		}
 
@@ -237,7 +237,7 @@ namespace HdSplit.ViewModels
 			SelectedTab = 0;
 			HdTaskIsRunning = false;
 			ScanningState = States.firstScanOfHd;
-			CanTestCheckLine = true;
+			CanCheckLine = true;
 			ReflexConnection = new ReflexConnectionModel();
 			ReflexTerminal = new ReflexTerminalModel();
 			ReflexTerminal.OpenReflexTerminal();
