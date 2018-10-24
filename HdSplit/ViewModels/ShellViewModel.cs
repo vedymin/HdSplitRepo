@@ -116,6 +116,34 @@ namespace HdSplit.ViewModels
 			}
 		}
 
+		private States _scanningState;
+		public States ScanningState
+		{
+			get { return _scanningState;}
+			set
+			{
+				_scanningState = value;
+				if (ScanningState == States.firstScanOfHd)
+				{
+					CanCheckLine = true;
+				}
+				else
+				{
+					CanCheckLine = false;
+				}
+				NotifyOfPropertyChange(() => ScanningState);
+			}
+		}
+
+		private bool _checkLine;
+		public bool CheckLine {
+			get { return _checkLine; }
+			set {
+				_checkLine = value;
+				NotifyOfPropertyChange(() => CheckLine);
+			}
+		}
+
 		private bool _hdTaskIsRunning;
 		public bool HdTaskIsRunning {
 			get { return _hdTaskIsRunning; }
@@ -139,6 +167,17 @@ namespace HdSplit.ViewModels
 
 		#region Guards
 
+		private bool _canTestCheckLine;
+		public bool CanCheckLine
+		{
+			get { return _canTestCheckLine; }
+			set
+			{
+				_canTestCheckLine = value;
+				NotifyOfPropertyChange(() => CanCheckLine);
+			}
+		}
+
 		public bool CanScanItemAsync {
 			get { return !HdTaskIsRunning; }
 		}
@@ -151,8 +190,6 @@ namespace HdSplit.ViewModels
 
 		#region Automatic Properties
 		
-		public States ScanningState { get; set; }
-
 		public int IndexOfIpgToMinusOne { get; set; }
 
 		public string ScannedItem { get; set; }
@@ -199,6 +236,8 @@ namespace HdSplit.ViewModels
 			ErrorLabelShowRunning = false;
 			SelectedTab = 0;
 			HdTaskIsRunning = false;
+			ScanningState = States.firstScanOfHd;
+			CanCheckLine = true;
 			ReflexConnection = new ReflexConnectionModel();
 			ReflexTerminal = new ReflexTerminalModel();
 			ReflexTerminal.OpenReflexTerminal();
@@ -458,17 +497,21 @@ namespace HdSplit.ViewModels
 			{
 				// Tricky way to copy one hd to another. Needs to go thru properties manually.
 				// There is porobably better way with function CopyOriginalHdToCountedHd().
-				//foreach (var Ipg in reflexConnection.OriginalHdModel.ListOfIpgs)
-				//{
-				//	if (Ipg.Line == IpgToCreate.Line)
-				//	{
-				//		continue;
-				//	}
-				//	else
-				//	{
-				//		return HdResult.differentLine;
-				//	}
-				//}
+				if (CheckLine)
+				{
+					foreach (var Ipg in reflexConnection.OriginalHdModel.ListOfIpgs)
+					{
+						if (Ipg.Line == IpgToCreate.Line)
+						{
+							continue;
+						}
+						else
+						{
+							return HdResult.differentLine;
+						}
+					}
+				}
+
 				//// We still have some data so return true.
 				return HdResult.hdCorrect;
 			}
@@ -572,34 +615,62 @@ namespace HdSplit.ViewModels
 				if (HdDataGridModel.Hds[i].HdNumber == _hd)
 				{
 					// Check if Line is correct
-					//if (HdDataGridModel.Hds[i].Line == IpgToCreate.Line)
-					//{
-					foreach (var Ipg in HdDataGridModel.Hds[i].ListOfIpgs)
+					if (CheckLine)
 					{
-						if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
+						if (HdDataGridModel.Hds[i].Line == IpgToCreate.Line)
 						{
-							Ipg.Quantity++;
-							ItemFounded = true;
+							foreach (var Ipg in HdDataGridModel.Hds[i].ListOfIpgs)
+							{
+								if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
+								{
+									Ipg.Quantity++;
+									ItemFounded = true;
+									HdForBreakdown = _hd;
+									ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
+									return true;
+								}
+							}
+
+							if (!ItemFounded)
+							{
+								HdForBreakdown = _hd;
+								AddIpgToExistingHd(i);
+								ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
+								return true;
+							}
+						}
+						else
+						{
+							Notify("This HD have wrong LINE!", Brushes.Red);
+							ScannedBarcode = String.Empty;
+							return false;
+						}
+
+					}
+					else
+					{
+						foreach (var Ipg in HdDataGridModel.Hds[i].ListOfIpgs)
+						{
+							if (Ipg.Item == IpgToCreate.Item || Ipg.UpcCode == IpgToCreate.UpcCode)
+							{
+								Ipg.Quantity++;
+								ItemFounded = true;
+								HdForBreakdown = _hd;
+								ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
+								return true;
+							}
+						}
+
+						if (!ItemFounded)
+						{
 							HdForBreakdown = _hd;
+							AddIpgToExistingHd(i);
 							ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
 							return true;
 						}
 					}
 
-					if (!ItemFounded)
-					{
-						HdForBreakdown = _hd;
-						AddIpgToExistingHd(i);
-						ReflexTerminal.ReflexIpgBreakdownToOldHd(HdForBreakdown);
-						return true;
-					}
-					//}
-					//else
-					//{
-					//	Notify("This HD have wrong LINE!", Brushes.Red);
-					//	ScannedBarcode = String.Empty;
-					//	return false;
-					//}
+
 				}
 			}
 
@@ -615,7 +686,10 @@ namespace HdSplit.ViewModels
 					}
 					else
 					{
-						//ZebraModel.Print(IpgToCreate.Line.ToString());
+						if (CheckLine)
+						{
+							ZebraModel.Print(IpgToCreate.Line.ToString());
+						}
 						IpgBreakdownResult = ReflexTerminal.ReflexIpgBreakdownToNewHd(_hd, Location);
 					}
 					if (IpgBreakdownResult != null)
