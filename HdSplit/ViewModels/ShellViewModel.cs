@@ -441,7 +441,7 @@ namespace HdSplit.ViewModels
 
 				if (ItemNotFound)
 				{
-					Notify("This item do not belong to this HD.", Brushes.Red);
+					Notify("This item does not belong to this HD.", Brushes.Red);
 
 					return;
 				}
