@@ -10,7 +10,7 @@
         mc:Ignorable="d" FontSize="18"
         Loaded="ShellView_OnLoaded"
         cal:Message.Attach="[Event Loaded] = [Action Loaded($eventArgs)];[Event Closing] = [Action OnClose($eventArgs)]"
-        Title="HD Split/Check" Height="800" Width="1200" WindowStartupLocation="CenterScreen">
+        Title="{Binding Title}" Height="800" Width="1200" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <Style TargetType="DataGridCell">
             <Setter Property="TextBlock.TextAlignment" Value="Center" />

@@ -170,6 +170,8 @@ namespace HdSplit.ViewModels
 		public ReflexTerminalModel ReflexTerminal { get; set; }
 
 		public ReflexConnectionModel ReflexConnection { get; set; }
+
+		public string Title { get; set; }
 		
 		#endregion
 
@@ -193,7 +195,7 @@ namespace HdSplit.ViewModels
 			//Location = ConfigurationManager.AppSettings["Location"];
 			//PrinterIp = ConfigurationManager.AppSettings["PrinterIp"];
 
-
+			Title = $"HdSplit/Check version: {Assembly.GetEntryAssembly().GetName().Version}";
 			ReflexFile.CheckForFolderAndFile();
 			InformationText = "Scan HD to start splitting";
 			ErrorLabelShowRunning = false;
