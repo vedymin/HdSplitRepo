@@ -174,7 +174,7 @@ namespace HdSplit.Models
 
 		public void WaitForText(string text)
 		{
-			log.Info("Waiting for text \"Sign On\" on the screen - 15 seconds timeout");
+			log.Info($"Waiting for text \"{text}\" on the screen - 15 seconds timeout");
 			TimeSpan maxDuration = TimeSpan.FromSeconds(40);
 			Stopwatch sw = Stopwatch.StartNew();
 
