@@ -10,7 +10,7 @@
         mc:Ignorable="d" FontSize="18"
         Loaded="ShellView_OnLoaded"
         cal:Message.Attach="[Event Loaded] = [Action Loaded($eventArgs)];[Event Closing] = [Action OnClose($eventArgs)]"
-        Title="HD Split/Check" Height="800" Width="1200" WindowStartupLocation="CenterScreen">
+        Title="{Binding Title}" Height="800" Width="1200" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <Style TargetType="DataGridCell">
             <Setter Property="TextBlock.TextAlignment" Value="Center" />
@@ -107,7 +107,8 @@
         <!-- Tab control -->
         <TabControl x:Name="TabControl" Grid.Row="4" Grid.Column="1"
                     ItemsSource="{Binding HdDataGridModel.Hds}"
-                    SelectedIndex="{Binding SelectedTab}">
+                    SelectedIndex="{Binding SelectedTab}"
+                    GotFocus="TabControl_OnGotFocus">
             <TabControl.ItemContainerStyle>
                 <Style TargetType="TabItem">
                     <Setter Property="Header" Value="{Binding TabHeader, Converter={StaticResource LineToHeaderConverter}}" />

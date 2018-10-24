@@ -1,6 +1,7 @@
 ﻿using HdSplit.Framework;
 using HdSplit.ViewModels;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace HdSplit.Views {
     /// <summary>
@@ -23,10 +24,25 @@ namespace HdSplit.Views {
 		    switch (e.PropertyName)
 		    {
 			    case "ScannedBarcode":
-				    ScannedBarcode.Focus();
-				    ScannedBarcode.SelectAll();
+				    FocusScannedBarcodeAndSelectAll();
 				    break;
 		    }
+	    }
+
+	    private void TabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+	    {
+		    FocusScannedBarcodeAndSelectAll();
+		}
+
+	    private void FocusScannedBarcodeAndSelectAll()
+	    {
+		    ScannedBarcode.Focus();
+		    ScannedBarcode.SelectAll();
+	    }
+
+	    private void TabControl_OnGotFocus(object sender, RoutedEventArgs e)
+	    {
+		    FocusScannedBarcodeAndSelectAll();
 	    }
 	}
 }
