@@ -91,8 +91,7 @@ namespace HdSplit.Models
             } 
             catch (Exception ex) 
             {
-                Console.WriteLine ("Error : " + ex);
-                Console.WriteLine (ex.StackTrace);
+                log.Error(ex);
                 return false;
             } 
             finally 
