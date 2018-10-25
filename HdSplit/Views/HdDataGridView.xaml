@@ -61,9 +61,10 @@
         <DataGrid.Columns>
             <DataGridTextColumn Header="Article" Binding="{Binding Item}" Width="*"/>
             <DataGridTextColumn Header="Line" Binding="{Binding Line, Converter={StaticResource LineConverter}}" Width="*"/>
-            <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="*"/>
-            <DataGridTextColumn Header="Grade" Binding="{Binding Grade}" Width="*"/>
+            <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="0.7*"/>
+            <DataGridTextColumn Header="Grade" Binding="{Binding Grade}" Width="0.7*"/>
             <DataGridTextColumn Header="Upc Code" Binding="{Binding UpcCode}" Width="*"/>
+            <DataGridTextColumn Header="Season" Binding="{Binding Season}" Width="*"/>
         </DataGrid.Columns>
     </DataGrid>
 </UserControl>

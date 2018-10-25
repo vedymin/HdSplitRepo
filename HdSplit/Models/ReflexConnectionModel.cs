@@ -48,9 +48,10 @@ namespace HdSplit.Models
                     // Query join table where we can see lines by items. A2CFAN is telling to DB2 to show only lines value.
                     // You can change it to show CAPO or something else. Result will be in field A2CFAR.
                     // This also needs to be ordered by Item.
-                    string _queryString = $"SELECT GECART, GECQAL, A2CFAR, GEQGEI FROM {Environment}.HLGEINP " + 
-                                   $"inner join {Environment}.HLCDFAP on GECART = A2CART " + 
-                                   $"WHERE GENSUP = '{_hd}' and A2CFAN = 'LINE' " +
+                    string _queryString = $"SELECT GECART, GECQAL, A.A2CFAR, GEQGEI, B.A2CFAR FROM {Environment}.HLGEINP " + 
+                                   $"inner join {Environment}.HLCDFAP A on GECART = A.A2CART " + 
+                                   $"inner join {Environment}.HLCDFAP B on GECART = B.A2CART " +
+                                   $"WHERE GENSUP = '{_hd}' and A.A2CFAN = 'LINE' AND B.A2CFAN = 'STAGIONE'" +
                                    "Order by GECART";
                     iDB2Command comm = conn.CreateCommand ();
                     comm.CommandText = _queryString;
@@ -71,7 +72,8 @@ namespace HdSplit.Models
                                 // Lines is an enum so we need parse string to enum here.
                                 Line = (Lines)Enum.Parse (typeof (Lines), reader.GetString (2)),
                                 Quantity = reader.GetInt32 (3),
-                            });
+								Season = reader.GetString(4).ToString().Trim()
+							});
                         }
 
                         // some cleaning.
