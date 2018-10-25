@@ -73,7 +73,7 @@ namespace HdSplit.ViewModels
 					//CountedHd.ListOfIpgs.Add (new IpgModel () {Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
 					//OriginalHd.ListOfIpgs.Add (new IpgModel () { Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
 
-					CountedHd.ListOfIpgs.Add(new IpgModel() { Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
+					CountedHd.ListOfIpgs.Add(new IpgModel() { Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade, Season = Ipg.Season});
 				}
 				// We still have some data so return true.
 				return true;
