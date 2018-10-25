@@ -14,5 +14,7 @@ namespace HdSplit.Models {
         public string Grade { get; set; }
         public string UpcCode { get; set; }
         public string Highlight { get; set; }
-    }
+	    public string Season { get; set; }
+
+	}
 }
