@@ -39,6 +39,7 @@
     {
         differentLine,
         hdUnknown,
-        hdCorrect
+        hdCorrect,
+		unconfirmedPicks
     }
 }

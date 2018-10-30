@@ -50,7 +50,7 @@ namespace HdSplit.ViewModels
 		/// <summary>
 		/// Download HD information
 		/// </summary>
-		public bool ScanHd()
+		public HdResult ScanHd()
 		{
 			// Clearing info about already working on HD's. Later should after Confirm function return all is done.
 			// Can be moved also to Reset button. You need oto reset anyway when you are scanning the HD.
@@ -63,7 +63,8 @@ namespace HdSplit.ViewModels
 
 			// IF checks here if we have some data inside reflexConnection.Hd.
 			// If not then this function return HD unknown (false)
-			if (reflexConnection.DownloadHdFromReflex(CountedHd.HdNumber))
+			var hdResult = reflexConnection.DownloadHdFromReflex(CountedHd.HdNumber);
+			if (hdResult == HdResult.hdCorrect)
 			{
 				// Tricky way to copy one hd to another. Needs to go thru properties manually.
 				// There is porobably better way with function CopyOriginalHdToCountedHd().
@@ -76,12 +77,11 @@ namespace HdSplit.ViewModels
 					CountedHd.ListOfIpgs.Add(new IpgModel() { Item = Ipg.Item, Line = Ipg.Line, Quantity = Ipg.Quantity, Grade = Ipg.Grade });
 				}
 				// We still have some data so return true.
-				return true;
+				return HdResult.hdCorrect;
 			}
 			else
 			{
-				// Hd is unknown
-				return false;
+				return HdResult.hdUnknown;
 			}
 		}
 

@@ -33,7 +33,7 @@ namespace HdSplit.Models
 		/// Returns true if HD exist, and saves this hd in OriginalHdModel instance created in this class.
 		/// If hd is Unknown returns false.
 		/// </summary>
-		public bool DownloadHdFromReflex(string _hd) 
+		public HdResult DownloadHdFromReflex(string _hd) 
         {
             Console.WriteLine ("Trying to connect to Reflex for downloading HD informations.");
 
@@ -79,12 +79,12 @@ namespace HdSplit.Models
                         comm.Dispose ();
 
                         // Returns true so we have our data in "OriginalHdModel" instance.
-                        return true;
+                        return HdResult.hdCorrect;
                     }
                     else
                     {
                         // When there is no data from Reflex
-                        return false;
+                        return HdResult.hdUnknown;
                     }
                 }
 
@@ -93,7 +93,7 @@ namespace HdSplit.Models
             {
                 Console.WriteLine ("Error : " + ex);
                 Console.WriteLine (ex.StackTrace);
-                return false;
+                return HdResult.hdUnknown;
             } 
             finally 
             {
@@ -101,7 +101,7 @@ namespace HdSplit.Models
             }
 
             // This will never reach but needs to be here because of error "Not all is returning value".
-            return false;
+            return HdResult.hdUnknown;
         }
 
         /// <summary>

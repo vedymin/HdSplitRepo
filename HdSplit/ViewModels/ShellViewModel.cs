@@ -457,11 +457,18 @@ namespace HdSplit.ViewModels
 			HdDataGridModel.CountedHd.HdNumber = ScannedBarcode;
 			HdDataGridModel.CountedHd.TabHeader = ScannedBarcode;
 			HdTaskIsRunning = true;
+			StartSTATask(ReflexScanHd);
+
 			// IF is checking if HD is unknown. IF yes then ScanHd return false, and Information label is updated.
-			if (!HdDataGridModel.ScanHd())
+			var resultOfHdScan = HdDataGridModel.ScanHd();
+			switch (resultOfHdScan)
 			{
-				Notify("Hd Unknown", Brushes.Red);
-				return false;
+				case HdResult.hdUnknown:
+					Notify("Hd Unknown", Brushes.Red);
+					return false;
+				case HdResult.unconfirmedPicks:
+					Notify("Unconfirmed picks under this HD. Needs to go back to original location.", Brushes.Red);
+					return false;
 			}
 
 			// HdNumber is binded to label on top of the program where you can see which HD user scanned.
@@ -471,7 +478,6 @@ namespace HdSplit.ViewModels
 			ScannedBarcode = string.Empty;
 
 			// As it says...
-			StartSTATask(ReflexScanHd);
 			//ReflexTerminal.HdScanned(HdNumber);
 			HdDataGridModel.DownloadUpc();
 			ScanningState = States.itemScan;
@@ -495,7 +501,7 @@ namespace HdSplit.ViewModels
 
 			// IF checks here if we have some data inside reflexConnection.Hd.
 			// If not then this function return HD unknown (false)
-			if (reflexConnection.DownloadHdFromReflex(_hd))
+			if (reflexConnection.DownloadHdFromReflex(_hd) == HdResult.hdCorrect)
 			{
 				// Tricky way to copy one hd to another. Needs to go thru properties manually.
 				// There is porobably better way with function CopyOriginalHdToCountedHd().
