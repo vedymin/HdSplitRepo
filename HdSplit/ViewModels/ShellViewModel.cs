@@ -499,7 +499,7 @@ namespace HdSplit.ViewModels
 			{
 				// Tricky way to copy one hd to another. Needs to go thru properties manually.
 				// There is porobably better way with function CopyOriginalHdToCountedHd().
-				if (CheckLine)
+				if (CheckLineAndGrade())
 				{
 					foreach (var Ipg in reflexConnection.OriginalHdModel.ListOfIpgs)
 					{
@@ -617,7 +617,7 @@ namespace HdSplit.ViewModels
 				if (HdDataGridModel.Hds[i].HdNumber == _hd)
 				{
 					// Check if Line is correct
-					if (CheckLine)
+					if (CheckLineAndGrade())
 					{
 						if (HdDataGridModel.Hds[i].Line == IpgToCreate.Line)
 						{
@@ -725,6 +725,11 @@ namespace HdSplit.ViewModels
 			}
 
 			return false;
+		}
+
+		private bool CheckLineAndGrade()
+		{
+			return CheckLine && (IpgToCreate.Grade != "R49" && IpgToCreate.Grade != "T49");
 		}
 
 		#region Reflex STA task function
