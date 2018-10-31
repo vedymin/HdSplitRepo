@@ -129,7 +129,7 @@ namespace HdSplit.ViewModels
 				}
 				else
 				{
-					CanCheckLine = false;
+					CanCheckLine = true;
 				}
 				NotifyOfPropertyChange(() => ScanningState);
 			}
