@@ -539,11 +539,23 @@ namespace HdSplit.Models
 			}
 		}
 
+		internal void ChangeStatusOfHdToIPL()
+		{
+			SendString(14, 11, 2);
+			SendEnter();
+			SendString(21,12,2);
+			SendEnter();
+			SendString(23, 12, 2);
+			SendEnter();
+			SendFkey(12);
+		}
+
 		public void HdScanned(string hd)
 		{
 			SetConnectionForOIAandPS();
 			SendString(hd, 20, 28);
 			SendEnter();
+			ChangeStatusOfHdToIPL();
 		}
 
 		public void ItemScanned(string item)
