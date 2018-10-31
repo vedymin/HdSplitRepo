@@ -240,6 +240,7 @@ namespace HdSplit.ViewModels
 			HdTaskIsRunning = false;
 			ScanningState = States.firstScanOfHd;
 			CanCheckLine = true;
+			CheckLine = true;
 			ReflexConnection = new ReflexConnectionModel();
 			ReflexTerminal = new ReflexTerminalModel();
 			ReflexTerminal.OpenReflexTerminal();
